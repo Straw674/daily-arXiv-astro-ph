@@ -1,8 +1,6 @@
-### [] 
+### []
 
 *{authors}*
-
-Main category: {cate}
 
 TL;DR: {tldr}
 
@@ -10,12 +8,12 @@ TL;DR: {tldr}
   <summary>Details</summary>
 Motivation: {motivation}
 
+Background: {background}
+
+Data: {data}
+
 Method: {method}
 
-Result: {result}
-
-Conclusion: {conclusion}
-
-Abstract: {summary}
+Result: {summary}
 
 </details>
