@@ -70,10 +70,10 @@ def main():
             print(f"{d['id']} has an error: {e}", file=sys.stderr)
             d["AI"] = {
                 "tldr": "Error",
-                "motivation": "Error",
+                "background": "Error",
+                "data": "Error",
                 "method": "Error",
                 "result": "Error",
-                "conclusion": "Error",
             }
         with open(
             args.data.replace(".jsonl", f"_AI_enhanced_{language}.jsonl"), "a"

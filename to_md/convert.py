@@ -45,11 +45,11 @@ if __name__ == "__main__":
                     summary=item["summary"],
                     url=item['abs'],
                     tldr=item['AI']['tldr'],
-                    motivation=item['AI']['motivation'],
+                    background=item['AI']['background'],
+                    data=item['AI']['data'],
                     method=item['AI']['method'],
                     result=item['AI']['result'],
-                    conclusion=item['AI']['conclusion'],
-                    cate=item['categories'][0],
+                    # cate=item['categories'][0],
                     idx=next(idx)
                 )
                 for item in data if item["categories"][0] == cate
