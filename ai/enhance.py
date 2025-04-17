@@ -66,7 +66,7 @@ def main():
                 "content": d["summary"],
             })
             d["AI"] = response.model_dump()
-        except langchain_core.exceptions.OutputParserException as e:
+        except Exception as e:
             print(f"{d['id']} has an error: {e}", file=sys.stderr)
             d["AI"] = {
                 "tldr": "Error",
