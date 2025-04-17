@@ -1,10 +1,10 @@
-### [{idx}] [{title}]({url})
+### [] 
+
 *{authors}*
 
 Main category: {cate}
 
-TLDR: {tldr}
-
+TL;DR: {tldr}
 
 <details>
   <summary>Details</summary>
