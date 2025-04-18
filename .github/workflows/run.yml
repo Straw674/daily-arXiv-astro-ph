@@ -4,8 +4,13 @@
 name: arXiv-daily-ai-enhanced
 
 on:
+  # Runs at 01:05 UTC every Monday, Tuesday, Wednesday, Thursday, Friday.
+  # This time is chosen because the arXiv daily announcement/listing update happens at 20:00 US Eastern Time (Sun-Thu),
+  # which corresponds to either 00:00 UTC or 01:00 UTC (Mon-Fri) depending on US Daylight Saving Time.
+  # Running at 01:05 UTC ensures the script executes *after* the announcement is complete in *all* cases,
+  # guaranteeing access to the full list of papers for the day.
   schedule:
-    - cron: "5 12 * * *"
+    - cron: "05 01 * * 1-5"
   workflow_dispatch:
 
 
