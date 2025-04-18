@@ -1,4 +1,3 @@
-Please analyze the following abstract of papers. 
+下面是一篇天文学文献的摘要。
 
-Content:
 {content}
