@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class PaperSummary(BaseModel):
+class Structure(BaseModel):
     """
     对一篇天文学论文的标题和摘要进行结构化总结。
     所有内容都必须基于原文，并使用严谨、客观的语言。
