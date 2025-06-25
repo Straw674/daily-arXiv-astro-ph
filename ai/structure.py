@@ -15,9 +15,9 @@ class Structure(BaseModel):
     data: str = Field(
         description="详细说明研究中使用的（观测或者 simulation）数据来源。"
     )
-    methods: str = Field( # 建议使用复数 methods
+    method: str = Field( # 建议使用复数 methods
         description="描述研究采用的核心分析方法、物理模型或技术手段。"
     )
-    results: str = Field( # 建议使用复数 results
+    result: str = Field( # 建议使用复数 results
         description="清晰、准确地陈述论文得出的主要科学发现或核心结论。"
     )
