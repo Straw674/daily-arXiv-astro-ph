@@ -68,7 +68,7 @@ def main():
         except Exception as e:
             print(f"{d['id']} has an error: {e}", file=sys.stderr)
             d["AI"] = {
-                "tldr": "Error",
+                "tldr": f"{e}",
                 "background": "Error",
                 "data": "Error",
                 "method": "Error",
