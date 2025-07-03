@@ -16,8 +16,8 @@ from structure import Structure
 
 if os.path.exists(".env"):
     dotenv.load_dotenv()
-template = open("template.txt", "r").read()
-system = open("system.txt", "r").read()
+# template = open("template.txt", "r").read()
+# system = open("system.txt", "r").read()
 
 
 def parse_args():
@@ -45,25 +45,74 @@ def main():
 
     data = unique_data
 
-    print("Open:", args.data, file=sys.stderr)
+    # llm = ChatOpenAI(model=model_name).with_structured_output(
+    #     Structure, method="function_calling"
+    # )
+    # print("Connect to:", model_name, file=sys.stderr)
+    # prompt_template = ChatPromptTemplate.from_messages([
+    #     SystemMessagePromptTemplate.from_template(system),
+    #     HumanMessagePromptTemplate.from_template(template=template),
+    # ])
 
-    llm = ChatOpenAI(model=model_name).with_structured_output(
-        Structure, method="function_calling"
-    )
+    # print(prompt_template)
+
+    # chain = prompt_template | llm
+
+    # for idx, d in enumerate(data):
+    #     try:
+    #         response: Structure = chain.invoke({
+    #             "content": d["summary"],
+    #         })
+    #         d["AI"] = response.model_dump()
+    #     except Exception as e:
+    #         print(f"{d['id']} has an error: {e}", file=sys.stderr)
+    #         d["AI"] = {
+    #             "tldr": f"{e}",
+    #             "background": "Error",
+    #             "data": "Error",
+    #             "method": "Error",
+    #             "result": "Error",
+    #         }
+    #     with open(
+    #         args.data.replace(".jsonl", f"_AI_enhanced_{language}.jsonl"), "a"
+    #     ) as f:
+    #         f.write(json.dumps(d) + "\n")
+
+    #     print(f"Finished {idx + 1}/{len(data)}", file=sys.stderr)
+
+    llm = ChatOpenAI(model=model_name)
     print("Connect to:", model_name, file=sys.stderr)
-    prompt_template = ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(system),
-        HumanMessagePromptTemplate.from_template(template=template),
-    ])
 
-    chain = prompt_template | llm
+    fields = {
+        "tldr": "请用一句话高度概括这篇论文的核心贡献，明确指出研究对象和主要发现。",
+        "background": "请阐述该研究的宏观科学背景、所要解决的具体科学问题或旨在验证的科学假设。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
+        "data": "请详细说明研究中使用的（观测或者 simulation）数据来源。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
+        "method": "请描述研究采用的核心分析方法、物理模型或技术手段。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
+        "result": "请清晰、准确地陈述论文得出的主要科学发现或核心结论。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
+    }
+
+    system = "你是一位天文领域的研究者。请基于以下摘要给出简短、凝练的一句话回答（不要使用换行或者列表），使用中文回答，只返回答案内容，不要包含其他说明。"
 
     for idx, d in enumerate(data):
         try:
-            response: Structure = chain.invoke({
-                "content": d["summary"],
-            })
-            d["AI"] = response.model_dump()
+            ai_result = {}
+
+            for field_name, field_prompt in fields.items():
+                prompt = (
+                    system
+                    + f"""
+
+{field_prompt}
+
+摘要内容：
+{d["summary"]}"""
+                )
+
+                response = llm.invoke(prompt)
+                ai_result[field_name] = response.content.strip()
+
+            d["AI"] = ai_result
+
         except Exception as e:
             print(f"{d['id']} has an error: {e}", file=sys.stderr)
             d["AI"] = {
@@ -73,10 +122,11 @@ def main():
                 "method": "Error",
                 "result": "Error",
             }
+
         with open(
             args.data.replace(".jsonl", f"_AI_enhanced_{language}.jsonl"), "a"
         ) as f:
-            f.write(json.dumps(d) + "\n")
+            f.write(json.dumps(d, ensure_ascii=False) + "\n")
 
         print(f"Finished {idx + 1}/{len(data)}", file=sys.stderr)
 
