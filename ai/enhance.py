@@ -21,7 +21,6 @@ system = open("system.txt", "r").read()
 
 
 def parse_args():
-    """解析命令行参数"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, required=True, help="jsonline data file")
     return parser.parse_args()

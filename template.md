@@ -1,8 +1,7 @@
-- This repo is forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), which crawls the arXiv articles published on the current day, and summarize the abstact with LLM
-- The original repo is applied to cs.CV and cs.CL in arxiv, while this repo is applied to astro-ph.GA
-- All summarized information is derived from the title and abstract, and is unrelated to the content of the articles
-- About how to fork, use and modify the project please refer to the original reposiotry.
-
+- This repository is forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), which crawls daily published arXiv articles and summarizes their abstracts using an LLM.
+- The original repository targets the `cs.CV` and `cs.CL` categories on arXiv, while this fork is configured for `astro-ph.GA`.
+- The summaries are generated solely based on the article titles and abstracts, without analyzing the full text of the papers.
+- For instructions on how to fork, use, and modify the project, please refer to the original repository.
 
 # Content
 
