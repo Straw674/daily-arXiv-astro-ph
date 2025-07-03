@@ -85,7 +85,7 @@ def main():
 
     fields = {
         "tldr": "请用一句话高度概括这篇论文的核心贡献，明确指出研究对象和主要发现。",
-        "background": "请阐述该研究的宏观科学背景、所要解决的具体科学问题或旨在验证的科学假设。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
+        "background": "请阐述该研究的宏观科学背景或者所属的主要科学主题。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
         "data": "请详细说明研究中使用的（观测或者 simulation）数据来源。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
         "method": "请描述研究采用的核心分析方法、物理模型或技术手段。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
         "result": "请清晰、准确地陈述论文得出的主要科学发现或核心结论。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
