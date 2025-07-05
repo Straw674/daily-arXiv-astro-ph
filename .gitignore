@@ -14,5 +14,3 @@ test/*
 # Others
 .DS_Store
 local_prepare.sh
-data/
-README.md
