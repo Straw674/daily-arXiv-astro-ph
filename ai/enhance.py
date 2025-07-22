@@ -83,6 +83,7 @@ def main():
     llm = ChatOpenAI(model=model_name)
     print("Connect to:", model_name, file=sys.stderr)
 
+    # In practice I found the structured output is not very robust
     fields = {
         "tldr": "请用一句话高度概括这篇论文的核心贡献，明确指出研究对象和主要发现。",
         "background": "请阐述该研究的宏观科学背景或者科学主题。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
@@ -91,7 +92,15 @@ def main():
         "result": "请清晰、准确地陈述论文得出的主要科学发现或核心结论。你的回答会将作为四个并列部分（background、data、method 或者 result）中的一个，所以不要输出和其他三个部分相关的信息。",
     }
 
-    system = "你是一位天文领域的研究者。请基于摘要对以下问题给出简短、凝练的一句话回答（不要使用换行或者列表）。使用中文回答。只返回答案内容，不要包含其他说明。不要使用 markdown 的数学公式语法。在回答中省略主语，也就是不要用“该研究”“该论文”开头。"
+    # Python will automatically concatenates adjacent strs.
+    system = (
+        "你是一位严谨、专业的天文领域研究者，精通文献阅读和信息提取。"
+        "你的任务是基于提供的文献摘要，对后续问题给出简短、凝练且高度精确的中文回答。"
+        "请确保每个回答都是一句话，且不使用换行、列表或Markdown数学公式语法。"
+        "对可能产生歧义的术语，在首次出现时用括号标注英文原词。"
+        "回答时只返回答案内容，不要包含任何额外的说明或引导语。"
+        "在回答中省略主语（例如，不要以“该研究”、“该论文”开头）。"
+    )
 
     for idx, d in enumerate(data):
         try:
