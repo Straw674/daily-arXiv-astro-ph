@@ -3,6 +3,9 @@
 
 name: arXiv-daily-ai-enhanced
 
+permissions:
+  contents: write
+
 on:
   # Runs at 03:00 UTC every Monday, Tuesday, Wednesday, Thursday, Friday.
   schedule:
@@ -21,6 +24,18 @@ jobs:
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
         uv sync
+    - name: Prime dist from data branch
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        mkdir -p dist
+        if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+          git clone --depth 1 --branch data "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" _data_branch
+          rsync -a --delete --exclude '.git' "_data_branch/" "dist/"
+          rm -rf _data_branch
+        else
+          echo "No data branch found yet; starting with an empty dist directory."
+        fi
     - name: Run script
       run: |
         source .venv/bin/activate
@@ -29,18 +44,16 @@ jobs:
         export LANGUAGE="${{ vars.LANGUAGE }}"
         export CATEGORIES="${{ vars.CATEGORIES }}"
         export MODEL_NAME="${{ vars.MODEL_NAME }}"
+        export OUTPUT_ROOT="dist"
         bash run.sh
-    - name: get date
+    - name: Get date
       id: get_date
       run: |
         echo "CURRENT_DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
-    - name: commit
-      run: |
-        git config --global user.email "${{ vars.EMAIL }}"
-        git config --global user.name "${{ vars.NAME }}"
-        git add .
-        git commit -m "update ${{ env.CURRENT_DATE }}"
-    - name: Push changes
-      uses: ad-m/github-push-action@master
+    - name: Publish generated markdown to data branch
+      uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: data
+        publish_dir: ./dist
+        commit_message: update ${{ env.CURRENT_DATE }}
