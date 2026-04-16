@@ -11,6 +11,11 @@ on:
   schedule:
     - cron: "00 03 * * 1-5"
   workflow_dispatch:
+    inputs:
+      force_regen:
+        description: "Force regenerate data for today"
+        type: boolean
+        default: false
 
 
 jobs:
@@ -45,6 +50,7 @@ jobs:
         export CATEGORIES="${{ vars.CATEGORIES }}"
         export MODEL_NAME="${{ vars.MODEL_NAME }}"
         export OUTPUT_ROOT="dist"
+        export FORCE_REGEN="${{ github.event.inputs.force_regen || 'false' }}"
         bash run.sh
     - name: Get date
       id: get_date

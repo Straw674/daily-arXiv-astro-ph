@@ -4,6 +4,13 @@ output_data_dir="${output_root}/data"
 
 mkdir -p "${output_data_dir}"
 
+if [ "${FORCE_REGEN}" = "true" ]; then
+    echo "Force regeneration enabled. Removing existing files for today."
+    rm -f "${output_data_dir}/${today}.jsonl"
+    rm -f "${output_data_dir}/${today}_AI_enhanced_${LANGUAGE}.jsonl"
+    rm -f "${output_data_dir}/${today}.md"
+fi
+
 # Task 1: crawl arxiv data
 if [ ! -f "${output_data_dir}/${today}.jsonl" ]; then
     echo "Running: scrapy crawl arxiv -o ../${output_data_dir}/${today}.jsonl"
