@@ -14,4 +14,4 @@ To keep the codebase clean and avoid commit conflicts from automated daily updat
 
 ## Daily Summaries
 
-👉 **[Click here to view the daily arXiv summaries](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data)**
+The summary files are in the **[data](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data)** branch. 
