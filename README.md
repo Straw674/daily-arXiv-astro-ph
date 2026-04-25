@@ -35,6 +35,8 @@ The output is provided as Markdown files (located in the `data` branch). Each fi
   - **Background**: Explains the context, the problem domain, and why the research is necessary.
   - **Summary**: Details the specific methods, results, and contributions of the paper.
 
+An example output can be found at [`2026-04-25.md`](2026-04-25.md) in the repository root. For the full archive of daily summaries, see the **[data](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data)** branch.
+
 ## How to Fork and Use
 
 If you want to fork this repository to track your own interests, you will need to complete the following setup steps:
