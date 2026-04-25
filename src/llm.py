@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from typing import Dict, Any
 from pydantic import BaseModel, Field
 import json
@@ -7,6 +8,22 @@ from openai import AsyncOpenAI
 import arxiv
 
 logger = logging.getLogger(__name__)
+
+# JSON only allows these escape sequences: \" \\ \/ \b \f \n \r \t \uXXXX
+# LLMs sometimes produce invalid ones like \_ (from LaTeX habits).
+_VALID_JSON_ESCAPES = frozenset('"\\bfnrtu/')
+
+
+def _sanitize_json_string(raw: str) -> str:
+    """Fix invalid JSON escape sequences by removing the backslash."""
+
+    def _replace_invalid_escape(m: re.Match) -> str:
+        char = m.group(1)
+        if char in _VALID_JSON_ESCAPES:
+            return m.group(0)  # keep valid escapes
+        return char  # drop the backslash
+
+    return re.sub(r"\\(.)", _replace_invalid_escape, raw)
 
 
 class PaperSummary(BaseModel):
@@ -74,7 +91,7 @@ async def enhance_paper(
                 extra_body={"thinking": {"type": "enabled"}},
             )
             content = response.choices[0].message.content
-            parsed = json.loads(content)
+            parsed = json.loads(_sanitize_json_string(content))
             result = PaperSummary.model_validate(parsed)
 
             return {
@@ -150,7 +167,7 @@ async def generate_daily_topics(
             extra_body={"thinking": {"type": "enabled"}},
         )
         content = response.choices[0].message.content
-        parsed = json.loads(content)
+        parsed = json.loads(_sanitize_json_string(content))
         topics = parsed.get("topics", ["General Astrophysics", "Others"])
         if "Others" not in topics:
             topics.append("Others")
