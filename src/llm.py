@@ -87,7 +87,7 @@ async def enhance_paper(
                 ],
                 response_format={"type": "json_object"},
                 stream=False,
-                reasoning_effort="max",
+                reasoning_effort="high",
                 extra_body={"thinking": {"type": "enabled"}},
             )
             content = response.choices[0].message.content
