@@ -46,7 +46,7 @@ jobs:
           export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           export OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
           export EMBEDDING_API_KEY=${{ secrets.EMBEDDING_API_KEY }}
-          export EMBEDDING_BASE_URL="${{ vars.EMBEDDING_BASE_URL }}"
+          export EMBEDDING_BASE_URL="${{ secrets.EMBEDDING_BASE_URL }}"
           export EMBEDDING_MODEL_NAME="${{ vars.EMBEDDING_MODEL_NAME }}"
           export LANGUAGE="${{ vars.LANGUAGE }}"
           export CATEGORIES="${{ vars.CATEGORIES }}"
@@ -65,3 +65,5 @@ jobs:
           publish_branch: data
           publish_dir: ./dist
           commit_message: update ${{ env.CURRENT_DATE }}
+          user_name: ${{ vars.NAME }}
+          user_email: ${{ vars.EMAIL }}
