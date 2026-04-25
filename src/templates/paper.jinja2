@@ -2,7 +2,7 @@
 {% for group in grouped_data %}
 ## {{ group.topic }}
 {% for paper in group.papers %}
-- [{{ paper.toc_summary }}](#{{ paper.id }})
+- [{{ paper.toc_summary }} ({{ "%.4f"|format(paper.similarity_score) }})](#{{ paper.id }})
 {%- endfor %}
 {% endfor %}
 ---
@@ -13,7 +13,7 @@
 
 ## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }})
 
-**Interest Score:** `{{ "%.3f"|format(paper.similarity_score) }}`
+**Relevance:** `{{ "%.4f"|format(paper.similarity_score) }}`
 
 ### Background
 
