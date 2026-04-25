@@ -1,0 +1,28 @@
+# Table of Contents
+{% for group in grouped_data %}
+## {{ group.topic }}
+{% for paper in group.papers %}
+- [{{ paper.toc_summary }}](#{{ paper.id }})
+{% endfor %}
+{% endfor %}
+
+---
+
+{% for group in grouped_data %}
+# {{ group.topic }}
+
+{% for paper in group.papers %}
+## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }})
+
+**Interest Score:** `{{ "%.3f"|format(paper.similarity_score) }}`
+
+### Background Knowledge
+
+{{ paper.background_knowledge }}
+
+### Summary
+
+{{ paper.contribution }}
+
+{% endfor %}
+{% endfor %}

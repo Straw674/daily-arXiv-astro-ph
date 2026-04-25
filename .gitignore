@@ -8,10 +8,9 @@ wheels/
 
 # Virtual environments
 .venv
-ai/.env
+.env
 test/*
 data/
 
 # Others
 .DS_Store
-local_prepare.sh

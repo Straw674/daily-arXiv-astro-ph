@@ -17,49 +17,51 @@ on:
         type: boolean
         default: false
 
-
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Install dependencies
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        uv sync
-    - name: Prime dist from data branch
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        mkdir -p dist
-        if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
-          git clone --depth 1 --branch data "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" _data_branch
-          rsync -a --delete --exclude '.git' "_data_branch/" "dist/"
-          rm -rf _data_branch
-        else
-          echo "No data branch found yet; starting with an empty dist directory."
-        fi
-    - name: Run script
-      run: |
-        source .venv/bin/activate
-        export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-        export OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
-        export LANGUAGE="${{ vars.LANGUAGE }}"
-        export CATEGORIES="${{ vars.CATEGORIES }}"
-        export MODEL_NAME="${{ vars.MODEL_NAME }}"
-        export OUTPUT_ROOT="dist"
-        export FORCE_REGEN="${{ github.event.inputs.force_regen || 'false' }}"
-        bash run.sh
-    - name: Get date
-      id: get_date
-      run: |
-        echo "CURRENT_DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
-    - name: Publish generated markdown to data branch
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_branch: data
-        publish_dir: ./dist
-        commit_message: update ${{ env.CURRENT_DATE }}
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv sync
+      - name: Prime dist from data branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git clone --depth 1 --branch data "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" _data_branch
+            rsync -a --delete --exclude '.git' "_data_branch/" "dist/"
+            rm -rf _data_branch
+          else
+            echo "No data branch found yet; starting with an empty dist directory."
+          fi
+      - name: Run script
+        run: |
+          source .venv/bin/activate
+          export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          export OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
+          export EMBEDDING_API_KEY=${{ secrets.EMBEDDING_API_KEY }}
+          export EMBEDDING_BASE_URL="${{ vars.EMBEDDING_BASE_URL }}"
+          export EMBEDDING_MODEL_NAME="${{ vars.EMBEDDING_MODEL_NAME }}"
+          export LANGUAGE="${{ vars.LANGUAGE }}"
+          export CATEGORIES="${{ vars.CATEGORIES }}"
+          export MODEL_NAME="${{ vars.MODEL_NAME }}"
+          export OUTPUT_ROOT="dist"
+          export FORCE_REGEN="${{ github.event.inputs.force_regen || 'false' }}"
+          uv run python src/main.py
+      - name: Get date
+        id: get_date
+        run: |
+          echo "CURRENT_DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+      - name: Publish generated markdown to data branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: data
+          publish_dir: ./dist
+          commit_message: update ${{ env.CURRENT_DATE }}
