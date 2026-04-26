@@ -16,7 +16,7 @@ To keep the codebase clean and avoid commit conflicts from automated daily updat
 To help prioritize which papers to read, this project uses text embeddings and a k-Nearest Neighbors (kNN) approach for personalized scoring:
 
 1. **Reference Library**: The user exports their personal reference library from Zotero as a `.bib` file (which must include paper abstracts).
-2. **Embedding Generation**: By running `zotero.py`, this `.bib` file is processed into a `.jsonl` cache containing the embeddings of the reference papers. This serves as a long-term reference for your research interests.
+2. **Embedding Generation**: By running `zotero.py`, this `.bib` file is processed into a `.json` cache containing the embeddings of the reference papers. This serves as a long-term reference for your research interests.
 3. **Daily Scoring**: Each daily arXiv paper's title and abstract are embedded and compared against the reference library using kNN. This generates a **relevance score** (specifically, the average cosine similarity of the top 5 most similar papers in your reference library) for every daily paper, effectively ranking them according to your personal interests.
 4. **Ranking**: Papers are first grouped by topic, and within each topic, they are sorted by this kNN score in descending order. Topics themselves are also ranked based on the highest score of the papers they contain.
 
@@ -68,5 +68,5 @@ If you want to fork this repository to track your own interests, you will need t
    - Export your personal Zotero library to a `.bib` file. **Make sure to configure the export to include abstracts**.
    - Upload this `.bib` file to the designated directory (`zotero/` by default) in the repository.
 3. **Generate Embeddings**:
-   - Run the `zotero.py` script locally to process your `.bib` file and generate the `.jsonl` embedding reference file.
-   - Commit and push the resulting `.jsonl` file to the repository. This `.jsonl` file will be used by the GitHub Action to score daily papers efficiently, without needing to re-embed your entire library every time.
+   - Run the `zotero.py` script locally to process your `.bib` file and generate the `.json` embedding reference file.
+   - Commit and push the resulting `.json` file to the repository. This `.json` file will be used by the GitHub Action to score daily papers efficiently, without needing to re-embed your entire library every time.
