@@ -5,7 +5,6 @@ from typing import Dict, Any
 from pydantic import BaseModel, Field
 import json
 from openai import AsyncOpenAI
-import arxiv
 
 logger = logging.getLogger(__name__)
 
@@ -69,16 +68,16 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
 
 async def enhance_paper(
     client: AsyncOpenAI,
-    paper: arxiv.Result,
+    paper: dict,
     sem: asyncio.Semaphore,
     model_name: str,
     language: str,
     topics: list[str],
 ) -> Dict[str, Any]:
     async with sem:
-        prompt = f"Title: {paper.title}\n\nAbstract: {paper.summary}"
+        prompt = f"Title: {paper['title']}\n\nAbstract: {paper['summary']}"
         try:
-            logger.info(f"Processing LLM for {paper.get_short_id()}...")
+            logger.info(f"Processing LLM for {paper['id']}...")
             response = await client.chat.completions.create(
                 model=model_name,
                 messages=[
@@ -95,36 +94,36 @@ async def enhance_paper(
             result = PaperSummary.model_validate(parsed)
 
             return {
-                "id": paper.get_short_id(),
-                "title": paper.title,
-                "url": paper.entry_id,
-                "pdf_url": paper.pdf_url,
-                "categories": paper.categories,
+                "id": paper["id"],
+                "title": paper["title"],
+                "url": paper["url"],
+                "pdf_url": paper["pdf_url"],
+                "categories": paper["categories"],
                 "topic": result.topic,
                 "toc_summary": result.toc_summary,
                 "background_knowledge": result.background_knowledge,
                 "contribution": result.contribution,
-                "summary": paper.summary,
+                "summary": paper["summary"],
             }
         except Exception as e:
-            logger.error(f"Error processing {paper.get_short_id()}: {e}")
+            logger.error(f"Error processing {paper['id']}: {e}")
             return {
-                "id": paper.get_short_id(),
-                "title": paper.title,
-                "url": paper.entry_id,
-                "pdf_url": paper.pdf_url,
-                "categories": paper.categories,
+                "id": paper["id"],
+                "title": paper["title"],
+                "url": paper["url"],
+                "pdf_url": paper["pdf_url"],
+                "categories": paper["categories"],
                 "topic": "Others",
                 "toc_summary": "Failed to generate summary.",
                 "background_knowledge": f"Failed when generating background knowledge. {e}",
                 "contribution": f"Failed when generating contribution. {e}",
-                "summary": paper.summary,
+                "summary": paper["summary"],
             }
 
 
 async def enhance_papers_concurrently(
     client: AsyncOpenAI,
-    papers: list[arxiv.Result],
+    papers: list[dict],
     model_name: str,
     language: str,
     topics: list[str],
@@ -140,10 +139,10 @@ async def enhance_papers_concurrently(
 
 
 async def generate_daily_topics(
-    client: AsyncOpenAI, papers: list[arxiv.Result], model_name: str
+    client: AsyncOpenAI, papers: list[dict], model_name: str
 ) -> list[str]:
     """Generates a list of topics based on the titles of today's papers."""
-    titles = [f"- {p.title}" for p in papers]
+    titles = [f"- {p['title']}" for p in papers]
     titles_str = "\n".join(titles)
 
     prompt = (
