@@ -198,7 +198,7 @@ def run_step3(
 
     logger.info("Updating README...")
     render_readme(data_dir, "data", readme_path)
-    logger.info("Step 2 complete.")
+    logger.info("Step 3 complete.")
 
 
 async def main():

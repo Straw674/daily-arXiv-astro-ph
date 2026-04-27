@@ -36,7 +36,7 @@ Papers are automatically categorized into thematic groups to make browsing easie
 
 The output is provided as Markdown files (located in the `data` branch). Each file is structured to give you a quick overview before diving into the details:
 
-- **Table of Contents (loc)**: At the beginning of the Markdown file, there is a list of links to each paper within the document. Importantly, the text for each link in the loc is **not** the paper's title, but rather a **simplified several-word summary** of the paper's main contribution. This allows you to quickly scan the core findings of the day.
+- **Table of Contents (ToC)**: At the beginning of the Markdown file, there is a list of links to each paper within the document. Importantly, the text for each link in the ToC is **not** the paper's title, but rather a **simplified several-word summary** of the paper's main contribution. This allows you to quickly scan the core findings of the day.
 - **Detailed Summaries**: For each paper, the summary is split into two distinct sections:
   - **Background**: Explains the context, the problem domain, and why the research is necessary.
   - **Summary**: Details the specific methods, results, and contributions of the paper.
@@ -47,7 +47,7 @@ An example output can be found at [`2026-04-25.md`](2026-04-25.md) in the reposi
 
 If you want to fork this repository to track your own interests, you will need to complete the following setup steps:
 
-1. **GitHub Secrets & Variables**: In your forked repository, go to `Settings > Secrets and variables > Actions` and configure the following (or search `os.getenv` in the codebase for a complete list). At least, You will need two sets of OpenAI-compatible API parameters — one for LLM summarization and one for embedding.
+1. **GitHub Secrets & Variables**: In your forked repository, go to `Settings > Secrets and variables > Actions` and configure the following (or search `os.getenv` in the codebase for a complete list). At least, You will need two sets of OpenAI-compatible API parameters — one for LLM summarization and one for embedding. Please note that the current implementation in `src/llm.py` uses DeepSeek's specific API calling convention (e.g., `extra_body={"thinking": {"type": "enabled"}}`). If you switch to a different LLM provider, you may need to adjust the parameters in `src/llm.py` to match their specific requirements.
 
    **Secrets** (sensitive credentials):
 
@@ -69,9 +69,6 @@ If you want to fork this repository to track your own interests, you will need t
    | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high) |
    | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push  |
    | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push |
-
-   > [!NOTE]
-   > The current implementation in `src/llm.py` uses DeepSeek's specific API calling convention (e.g., `extra_body={"thinking": {"type": "enabled"}}`). If you switch to a different LLM provider, you may need to adjust the parameters in `src/llm.py` to match their specific requirements.
 
 2. **Zotero Library**:
    - Export your personal Zotero library to a `.bib` file. **Make sure to configure the export to include abstracts**.
