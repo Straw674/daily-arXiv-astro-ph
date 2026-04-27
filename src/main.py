@@ -148,8 +148,9 @@ def group_and_sort_papers(enhanced_data):
 
     sorted_topics = sorted(
         grouped_data.keys(),
-        key=lambda t: max(
-            (x.get("similarity_score", 0.0) for x in grouped_data[t]), default=0.0
+        key=lambda t: (
+            sum(x.get("similarity_score", 0.0) for x in grouped_data[t][:3])
+            / len(grouped_data[t][:3])
         )
         if t != "Others"
         else -float("inf"),
