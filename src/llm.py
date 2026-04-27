@@ -166,7 +166,9 @@ async def generate_daily_topics(
     """Generates a list of topics based on the titles of today's papers."""
     # Check if custom groups are defined in environment variables
     custom_groups = os.getenv("CUSTOM_GROUPS")
+    logger.info(f"CUSTOM_GROUPS: {custom_groups}")
     if custom_groups:
+        logger.info(f"Loading CUSTOM_GROUPS: {custom_groups}")
         topics = [t.strip() for t in custom_groups.split(",") if t.strip()]
         if "Others" not in topics:
             topics.append("Others")
