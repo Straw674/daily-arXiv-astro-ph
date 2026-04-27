@@ -18,7 +18,7 @@ To help prioritize which papers to read, this project uses text embeddings and a
 1. **Reference Library**: The user exports their personal reference library from Zotero as a `.bib` file (which must include paper abstracts).
 2. **Embedding Generation**: By running `zotero.py`, this `.bib` file is processed into a `.json` cache containing the embeddings of the reference papers. This serves as a long-term reference for your research interests.
 3. **Daily Scoring**: Each daily arXiv paper's title and abstract are embedded and compared against the reference library using kNN. This generates a **relevance score** (specifically, the average cosine similarity of the top 5 most similar papers in your reference library) for every daily paper, effectively ranking them according to your personal interests.
-4. **Ranking**: Papers are first grouped by topic, and within each topic, they are sorted by this kNN score in descending order. Topics themselves are also ranked based on the average score of the top 3 papers they contain (or all papers if the topic has fewer than 3).
+4. **Ranking**: Papers are first grouped by topic, and within each topic, they are sorted by this kNN score in descending order. Topics themselves are also ranked based on a weighted sum of the scores of all papers in the group, using an exponential decay (factor of 0.5) according to their rank. This balances both the peak relevance and the overall density of interesting papers in each topic.
 
 ### Paper Grouping
 
