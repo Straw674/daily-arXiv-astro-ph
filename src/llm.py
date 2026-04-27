@@ -98,7 +98,7 @@ async def enhance_paper(
                     ],
                     response_format={"type": "json_object"},
                     stream=False,
-                    reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
+                    reasoning_effort=os.getenv("LLM_REASONING_EFFORT") or "max",
                     extra_body={"thinking": {"type": "enabled"}},
                 )
                 content = response.choices[0].message.content
@@ -202,7 +202,7 @@ async def generate_daily_topics(
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
                 stream=False,
-                reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
+                reasoning_effort=os.getenv("LLM_REASONING_EFFORT") or "max",
                 extra_body={"thinking": {"type": "enabled"}},
             )
             content = response.choices[0].message.content

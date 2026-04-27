@@ -24,10 +24,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set current date
+        id: date
+        run: echo "today=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
       - name: Install dependencies
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv sync
+        run: uv sync
+
       - name: Prime dist from data branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,30 +49,34 @@ jobs:
           else
             echo "No data branch found yet; starting with an empty dist directory."
           fi
+
       - name: Run script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          EMBEDDING_API_KEY: ${{ secrets.EMBEDDING_API_KEY }}
+          EMBEDDING_BASE_URL: ${{ secrets.EMBEDDING_BASE_URL }}
+          EMBEDDING_MODEL_NAME: ${{ vars.EMBEDDING_MODEL_NAME }}
+          LANGUAGE: ${{ vars.LANGUAGE }}
+          CATEGORIES: ${{ vars.CATEGORIES }}
+          MODEL_NAME: ${{ vars.MODEL_NAME }}
+          CUSTOM_GROUPS: ${{ vars.CUSTOM_GROUPS }}
+          LLM_REASONING_EFFORT: ${{ vars.LLM_REASONING_EFFORT }}
+          CONCURRENCY_LIMIT: ${{ vars.CONCURRENCY_LIMIT }}
+          ZOTERO_EMB_PATH: ${{ vars.ZOTERO_EMB_PATH }}
+          ZOTERO_BIB_PATH: ${{ vars.ZOTERO_BIB_PATH }}
+          OUTPUT_ROOT: "dist"
+          FORCE_REGEN: ${{ github.event.inputs.force_regen || 'false' }}
         run: |
           source .venv/bin/activate
-          export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          export OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
-          export EMBEDDING_API_KEY=${{ secrets.EMBEDDING_API_KEY }}
-          export EMBEDDING_BASE_URL="${{ secrets.EMBEDDING_BASE_URL }}"
-          export EMBEDDING_MODEL_NAME="${{ vars.EMBEDDING_MODEL_NAME }}"
-          export LANGUAGE="${{ vars.LANGUAGE }}"
-          export CATEGORIES="${{ vars.CATEGORIES }}"
-          export MODEL_NAME="${{ vars.MODEL_NAME }}"
-          export OUTPUT_ROOT="dist"
-          export FORCE_REGEN="${{ github.event.inputs.force_regen || 'false' }}"
           uv run python src/main.py
-      - name: Get date
-        id: get_date
-        run: |
-          echo "CURRENT_DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
       - name: Publish generated markdown to data branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: data
           publish_dir: ./dist
-          commit_message: update ${{ env.CURRENT_DATE }}
+          commit_message: update ${{ steps.date.outputs.today }}
           user_name: ${{ vars.NAME }}
           user_email: ${{ vars.EMAIL }}

@@ -29,9 +29,8 @@ def main():
 
     load_dotenv()
 
-    bib_path = args.bib or os.getenv("ZOTERO_BIB_PATH", "zotero/zotero_all.bib")
-    output_root = os.getenv("OUTPUT_ROOT", "dist")
-    emb_path = os.getenv("ZOTERO_EMB_PATH", "zotero/zotero_embeddings.json")
+    bib_path = args.bib or os.getenv("ZOTERO_BIB_PATH") or "zotero/zotero_all.bib"
+    emb_path = os.getenv("ZOTERO_EMB_PATH") or "zotero/zotero_embeddings.json"
 
     if not os.path.exists(bib_path):
         logger.error(f"Zotero bib file not found: {bib_path}")
@@ -69,12 +68,12 @@ def main():
 
     client = OpenAI(
         api_key=api_key,
-        base_url=os.getenv(
-            "EMBEDDING_BASE_URL",
-            "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        base_url=(
+            os.getenv("EMBEDDING_BASE_URL")
+            or "https://dashscope.aliyuncs.com/compatible-mode/v1"
         ),
     )
-    emb_model = os.getenv("EMBEDDING_MODEL_NAME", "text-embedding-v4")
+    emb_model = os.getenv("EMBEDDING_MODEL_NAME") or "text-embedding-v4"
 
     logger.info(f"Computing embeddings with {emb_model}...")
     try:

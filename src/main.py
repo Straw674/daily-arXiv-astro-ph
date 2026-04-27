@@ -78,7 +78,7 @@ async def run_step2(fetched_jsonl_path, jsonl_path, model_name, language, force_
     topics = await generate_daily_topics(client, papers, model_name)
 
     logger.info("Enhancing papers with LLM...")
-    concurrency_limit = int(os.getenv("CONCURRENCY_LIMIT", 5))
+    concurrency_limit = int(os.getenv("CONCURRENCY_LIMIT") or 5)
 
     enhanced_data = await enhance_papers_concurrently(
         client, papers, model_name, language, topics, concurrency=concurrency_limit
@@ -108,14 +108,14 @@ def load_zotero_embeddings(zotero_emb_path):
 
 
 def score_papers_with_zotero(enhanced_data, zotero_embs):
-    emb_model = os.getenv("EMBEDDING_MODEL_NAME", "text-embedding-v4")
+    emb_model = os.getenv("EMBEDDING_MODEL_NAME") or "text-embedding-v4"
     logger.info(f"Computing embeddings for arXiv papers with {emb_model}...")
 
     client = OpenAI(
         api_key=os.getenv("EMBEDDING_API_KEY"),
-        base_url=os.getenv(
-            "EMBEDDING_BASE_URL",
-            "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        base_url=(
+            os.getenv("EMBEDDING_BASE_URL")
+            or "https://dashscope.aliyuncs.com/compatible-mode/v1"
         ),
     )
 
@@ -214,16 +214,16 @@ async def main():
 
     load_dotenv()
 
-    categories = os.getenv("CATEGORIES", "astro-ph.GA, astro-ph.CO, astro-ph.IM").split(
-        ","
-    )
+    categories = (
+        os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
+    ).split(",")
     categories = [c.strip() for c in categories]
-    model_name = os.getenv("MODEL_NAME", "deepseek-chat")
-    language = os.getenv("LANGUAGE", "中文")
-    output_root = os.getenv("OUTPUT_ROOT", "dist")
+    model_name = os.getenv("MODEL_NAME") or "deepseek-chat"
+    language = os.getenv("LANGUAGE") or "中文"
+    output_root = os.getenv("OUTPUT_ROOT") or "dist"
     data_dir = os.path.join(output_root, "data")
     force_regen = os.getenv("FORCE_REGEN") == "true"
-    zotero_emb_path = os.getenv("ZOTERO_EMB_PATH", "zotero/zotero_embeddings.json")
+    zotero_emb_path = os.getenv("ZOTERO_EMB_PATH") or "zotero/zotero_embeddings.json"
 
     os.makedirs(data_dir, exist_ok=True)
 
