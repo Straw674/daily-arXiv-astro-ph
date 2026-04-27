@@ -76,51 +76,71 @@ async def enhance_paper(
     language: str,
     topics: list[str],
 ) -> Dict[str, Any]:
+    MAX_RETRIES = 3
     async with sem:
         prompt = f"Title: {paper['title']}\n\nAbstract: {paper['summary']}"
-        try:
-            logger.info(f"Processing LLM for {paper['id']}...")
-            response = await client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": get_system_prompt(language, topics)},
-                    {"role": "user", "content": prompt},
-                ],
-                response_format={"type": "json_object"},
-                stream=False,
-                reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
-                extra_body={"thinking": {"type": "enabled"}},
-            )
-            content = response.choices[0].message.content
-            parsed = json.loads(_sanitize_json_string(content))
-            result = PaperSummary.model_validate(parsed)
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                if attempt == 0:
+                    logger.info(f"Processing LLM for {paper['id']}...")
+                else:
+                    logger.info(
+                        f"Processing LLM for {paper['id']} (Retry {attempt}/{MAX_RETRIES})..."
+                    )
+                response = await client.chat.completions.create(
+                    model=model_name,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": get_system_prompt(language, topics),
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    response_format={"type": "json_object"},
+                    stream=False,
+                    reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
+                    extra_body={"thinking": {"type": "enabled"}},
+                )
+                content = response.choices[0].message.content
+                parsed = json.loads(_sanitize_json_string(content))
+                result = PaperSummary.model_validate(parsed)
 
-            return {
-                "id": paper["id"],
-                "title": paper["title"],
-                "url": paper["url"],
-                "pdf_url": paper["pdf_url"],
-                "categories": paper["categories"],
-                "topic": result.topic,
-                "toc_summary": result.toc_summary,
-                "background_knowledge": result.background_knowledge,
-                "contribution": result.contribution,
-                "summary": paper["summary"],
-            }
-        except Exception as e:
-            logger.error(f"Error processing {paper['id']}: {e}")
-            return {
-                "id": paper["id"],
-                "title": paper["title"],
-                "url": paper["url"],
-                "pdf_url": paper["pdf_url"],
-                "categories": paper["categories"],
-                "topic": "Others",
-                "toc_summary": "Failed to generate summary.",
-                "background_knowledge": f"Failed when generating background knowledge. {e}",
-                "contribution": f"Failed when generating contribution. {e}",
-                "summary": paper["summary"],
-            }
+                return {
+                    "id": paper["id"],
+                    "title": paper["title"],
+                    "url": paper["url"],
+                    "pdf_url": paper["pdf_url"],
+                    "categories": paper["categories"],
+                    "topic": result.topic,
+                    "toc_summary": result.toc_summary,
+                    "background_knowledge": result.background_knowledge,
+                    "contribution": result.contribution,
+                    "summary": paper["summary"],
+                }
+            except Exception as e:
+                if attempt < MAX_RETRIES:
+                    logger.warning(
+                        f"Error processing {paper['id']} on attempt {attempt + 1}: {e}. Retrying..."
+                    )
+                    # Add a small delay between retries
+                    await asyncio.sleep(2**attempt)
+                    continue
+
+                logger.error(
+                    f"Final error processing {paper['id']} after {MAX_RETRIES} retries: {e}"
+                )
+                return {
+                    "id": paper["id"],
+                    "title": paper["title"],
+                    "url": paper["url"],
+                    "pdf_url": paper["pdf_url"],
+                    "categories": paper["categories"],
+                    "topic": "Others",
+                    "toc_summary": "Failed to generate summary.",
+                    "background_knowledge": f"Failed when generating background knowledge. {e}",
+                    "contribution": f"Failed when generating contribution. {e}",
+                    "summary": paper["summary"],
+                }
 
 
 async def enhance_papers_concurrently(
@@ -157,29 +177,45 @@ async def generate_daily_topics(
         f"Paper Titles:\n{titles_str}"
     )
 
-    try:
-        logger.info("Generating dynamic daily topics...")
-        response = await client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            stream=False,
-            reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
-            extra_body={"thinking": {"type": "enabled"}},
-        )
-        content = response.choices[0].message.content
-        parsed = json.loads(_sanitize_json_string(content))
-        topics = parsed.get("topics", ["General Astrophysics", "Others"])
-        if "Others" not in topics:
-            topics.append("Others")
-        logger.info(f"Generated topics: {topics}")
-        return topics
-    except Exception as e:
-        logger.error(f"Failed to generate daily topics: {e}")
-        return [
-            "General Astrophysics",
-            "Cosmology",
-            "Stars and Exoplanets",
-            "Galaxies",
-            "Others",
-        ]
+    MAX_RETRIES = 3
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            if attempt == 0:
+                logger.info("Generating dynamic daily topics...")
+            else:
+                logger.info(
+                    f"Generating dynamic daily topics (Retry {attempt}/{MAX_RETRIES})..."
+                )
+            response = await client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                stream=False,
+                reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
+                extra_body={"thinking": {"type": "enabled"}},
+            )
+            content = response.choices[0].message.content
+            parsed = json.loads(_sanitize_json_string(content))
+            topics = parsed.get("topics", ["General Astrophysics", "Others"])
+            if "Others" not in topics:
+                topics.append("Others")
+            logger.info(f"Generated topics: {topics}")
+            return topics
+        except Exception as e:
+            if attempt < MAX_RETRIES:
+                logger.warning(
+                    f"Failed to generate daily topics on attempt {attempt + 1}: {e}. Retrying..."
+                )
+                await asyncio.sleep(2**attempt)
+                continue
+
+            logger.error(
+                f"Failed to generate daily topics after {MAX_RETRIES} retries: {e}"
+            )
+            return [
+                "General Astrophysics",
+                "Cosmology",
+                "Stars and Exoplanets",
+                "Galaxies",
+                "Others",
+            ]
