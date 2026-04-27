@@ -1,4 +1,4 @@
-# Table of Contents
+# <a id="toc"></a>Table of Contents
 {% for group in grouped_data %}
 ## {{ group.topic }}
 {% for paper in group.papers %}
@@ -11,7 +11,7 @@
 # {{ group.topic }}
 {%- for paper in group.papers %}
 
-## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }})
+## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }}) [<sup>[back]</sup>](#toc)
 
 **Relevance:** `{{ "%.4f"|format(paper.similarity_score) }}`
 
