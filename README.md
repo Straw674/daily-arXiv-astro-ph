@@ -1,6 +1,6 @@
 # daily-arXiv-astro-ph
 
-This repository was originally forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), but it has since been heavily modified and essentially rewritten to fit a completely different architecture and feature set. It crawls daily published arXiv articles (focusing on `astro-ph.GA`, `astro-ph.CO`, `astro-ph.IM`), scores and categorizes them, and generates daily summaries using an LLM.
+This repository was originally forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), but it has since been heavily modified and essentially rewritten now. It crawls daily published arXiv articles (focusing on `astro-ph.GA`, `astro-ph.CO`), scores and categorizes them, and generates daily summaries using an LLM.
 
 ## Repository Structure
 
@@ -26,6 +26,11 @@ Papers are automatically categorized into thematic groups to make browsing easie
 
 - **Group Generation**: The LLM analyzes the collective topics of the daily papers and dynamically determines both the appropriate number of groups and their names based on the papers.
 - **Paper Assignment**: After the groups are established, the LLM assigns each paper to the most relevant group.
+
+### Technical Implementation
+
+- **Data Source**: The project uses arXiv's RSS feeds instead of the search API. This ensures the articles fetched are the same batch as the ones on the arXiv website.
+- **Filtering**: Only `new` and `cross` submissions are processed. Replacements (updates to old papers) are skipped.
 
 ### Daily Summary Format
 
@@ -61,8 +66,12 @@ If you want to fork this repository to track your own interests, you will need t
    | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                  |
    | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track      |
    | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries           |
+   | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high) |
    | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push  |
    | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push |
+
+   > [!NOTE]
+   > The current implementation in `src/llm.py` uses DeepSeek's specific API calling convention (e.g., `extra_body={"thinking": {"type": "enabled"}}`). If you switch to a different LLM provider, you may need to adjust the parameters in `src/llm.py` to match their specific requirements.
 
 2. **Zotero Library**:
    - Export your personal Zotero library to a `.bib` file. **Make sure to configure the export to include abstracts**.
