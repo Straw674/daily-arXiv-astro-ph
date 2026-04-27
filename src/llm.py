@@ -1,10 +1,12 @@
 import asyncio
-import logging
-import re
-from typing import Dict, Any
-from pydantic import BaseModel, Field
 import json
+import logging
+import os
+import re
+from typing import Any, Dict
+
 from openai import AsyncOpenAI
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +88,7 @@ async def enhance_paper(
                 ],
                 response_format={"type": "json_object"},
                 stream=False,
-                reasoning_effort="high",
+                reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
                 extra_body={"thinking": {"type": "enabled"}},
             )
             content = response.choices[0].message.content
@@ -162,7 +164,7 @@ async def generate_daily_topics(
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
             stream=False,
-            reasoning_effort="high",
+            reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "max"),
             extra_body={"thinking": {"type": "enabled"}},
         )
         content = response.choices[0].message.content
