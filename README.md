@@ -20,12 +20,14 @@ To help prioritize which papers to read, this project uses text embeddings and a
 3. **Daily Scoring**: Each daily arXiv paper's title and abstract are embedded and compared against the reference library using kNN. This generates a **relevance score** (specifically, the average cosine similarity of the top 5 most similar papers in your reference library) for every daily paper, effectively ranking them according to your personal interests.
 4. **Ranking**: Papers are first grouped by topic, and within each topic, they are sorted by this kNN score in descending order. Topics themselves are also ranked based on the highest score of the papers they contain.
 
-### Automatic Grouping
+### Paper Grouping
 
-Papers are automatically categorized into thematic groups to make browsing easier:
+Papers are categorized into thematic groups to make browsing easier. This can be done in two ways:
 
-- **Group Generation**: The LLM analyzes the collective topics of the daily papers and dynamically determines both the appropriate number of groups and their names based on the papers.
-- **Paper Assignment**: After the groups are established, the LLM assigns each paper to the most relevant group.
+- **Manual Grouping (Recommended)**: You can provide a fixed list of group names via the `CUSTOM_GROUPS` environment variable. This ensures consistency and avoids redundant LLM calls.
+- **Automatic Grouping**: If `CUSTOM_GROUPS` is not set, the LLM analyzes the titles of the daily papers to dynamically determine appropriate group names based on the content of that specific day.
+
+In both cases, the LLM is responsible for assigning each paper to the most relevant group from the available list.
 
 ### Technical Implementation
 
@@ -60,15 +62,16 @@ If you want to fork this repository to track your own interests, you will need t
 
    **Variables** (non-sensitive configuration):
 
-   | Name                   | Example                                 | Description                                    |
-   | ---------------------- | --------------------------------------- | ---------------------------------------------- |
-   | `MODEL_NAME`           | `deepseek-v4-pro`                       | Model name for LLM summarization               |
-   | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                  |
-   | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track      |
-   | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries           |
-   | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high) |
-   | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push  |
-   | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push |
+   | Name                   | Example                                 | Description                                        |
+   | ---------------------- | --------------------------------------- | -------------------------------------------------- |
+   | `MODEL_NAME`           | `deepseek-v4-pro`                       | Model name for LLM summarization                   |
+   | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                      |
+   | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track          |
+   | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics |
+   | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries               |
+   | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high)     |
+   | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push      |
+   | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push     |
 
 2. **Zotero Library**:
    - Export your personal Zotero library to a `.bib` file. **Make sure to configure the export to include abstracts**.
