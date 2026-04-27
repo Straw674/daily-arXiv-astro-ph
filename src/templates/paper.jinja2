@@ -11,7 +11,7 @@
 # {{ group.topic }}
 {%- for paper in group.papers %}
 
-## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }}) [<sup>[back]</sup>](#toc)
+## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }}) [[back]](#toc)
 
 **Relevance:** `{{ "%.4f"|format(paper.similarity_score) }}`
 
