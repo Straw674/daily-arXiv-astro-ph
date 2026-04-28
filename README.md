@@ -1,8 +1,11 @@
-- This branch is automatically updated by GitHub Actions to keep code and data separate.
-- **Schedule**: Monday to Friday at 03:00 UTC (`00 03 * * 1-5`)
+- This branch is automatically updated by GitHub Actions to maintain a clear separation between code and data. The pipeline runs every weekday (Monday to Friday) at 03:00 UTC (`00 03 * * 1-5`).
+- Summaries prior to 2026-04-25 were generated using an old version of pipeline. The current pipeline has been operational since 2026-04-27.
+- The operational cost is approximately 1 RMB per 100 papers (assuming DeepSeek v4 pro with `reasoning_effort` set to `max`).
 
 ## Summaries
 
+
+- [2026-04-28](data/2026-04-28.md)
 
 - [2026-04-27](data/2026-04-27.md)
 
