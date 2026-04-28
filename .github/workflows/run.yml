@@ -9,7 +9,7 @@ permissions:
 on:
   # Runs at 03:00 UTC every Monday, Tuesday, Wednesday, Thursday, Friday.
   schedule:
-    - cron: "00 03 * * 1-5"
+    - cron: "12 03 * * 1-5"
   workflow_dispatch:
     inputs:
       force_regen:
