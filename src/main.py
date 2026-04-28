@@ -128,7 +128,7 @@ def score_papers_with_zotero(enhanced_data, zotero_embs):
         paper_embs = get_embeddings_in_batches(
             client, texts_to_embed, emb_model, batch_size=10
         )
-        scores = compute_knn_scores(paper_embs, zotero_embs, top_k=5)
+        scores = compute_knn_scores(paper_embs, zotero_embs, top_k=10)
         for item, score in zip(enhanced_data, scores):
             item["similarity_score"] = score
     except Exception as e:
