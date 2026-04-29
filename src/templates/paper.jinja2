@@ -1,17 +1,17 @@
 # <a id="toc"></a>Table of Contents
 {% for group in grouped_data %}
-## {{ group.topic }}
+## <a id="toc-{{ loop.index }}"></a>{{ group.topic }}
 {% for paper in group.papers %}
 - [{{ paper.toc_summary }} ({{ "%.4f"|format(paper.similarity_score) }})](#{{ paper.id }})
 {%- endfor %}
 {% endfor %}
 ---
 {%- for group in grouped_data %}
-
+{% set group_index = loop.index %}
 # {{ group.topic }}
 {%- for paper in group.papers %}
 
-## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }}) [[back]](#toc)
+## <a id="{{ paper.id }}"></a>[{{ paper.title }}]({{ paper.url if paper.url else "https://arxiv.org/abs/" + paper.id }}) [[back]](#toc-{{ group_index }})
 
 **Relevance:** `{{ "%.4f"|format(paper.similarity_score) }}`
 
