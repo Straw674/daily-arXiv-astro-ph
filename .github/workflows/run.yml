@@ -63,6 +63,7 @@ jobs:
           CUSTOM_GROUPS: ${{ vars.CUSTOM_GROUPS }}
           LLM_REASONING_EFFORT: ${{ vars.LLM_REASONING_EFFORT }}
           CONCURRENCY_LIMIT: ${{ vars.CONCURRENCY_LIMIT }}
+          KNN_TOP_K: ${{ vars.KNN_TOP_K }}
           ZOTERO_EMB_PATH: ${{ vars.ZOTERO_EMB_PATH }}
           ZOTERO_BIB_PATH: ${{ vars.ZOTERO_BIB_PATH }}
           OUTPUT_ROOT: "dist"

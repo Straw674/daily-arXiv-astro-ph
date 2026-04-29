@@ -110,6 +110,7 @@ def load_zotero_embeddings(zotero_emb_path):
 
 def score_papers_with_zotero(enhanced_data, zotero_embs):
     emb_model = os.getenv("EMBEDDING_MODEL_NAME") or "text-embedding-v4"
+    knn_top_k = int(os.getenv("KNN_TOP_K") or 10)
     logger.info(f"Computing embeddings for arXiv papers with {emb_model}...")
 
     client = OpenAI(
@@ -128,7 +129,7 @@ def score_papers_with_zotero(enhanced_data, zotero_embs):
         paper_embs = get_embeddings_in_batches(
             client, texts_to_embed, emb_model, batch_size=10
         )
-        scores = compute_knn_scores(paper_embs, zotero_embs, top_k=10)
+        scores = compute_knn_scores(paper_embs, zotero_embs, top_k=knn_top_k)
         for item, score in zip(enhanced_data, scores):
             item["similarity_score"] = score
     except Exception as e:
