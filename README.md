@@ -38,7 +38,7 @@ In both cases, the LLM is responsible for assigning each paper to the most relev
 
 The output is provided as Markdown files (located in the `data` branch). Each file is structured to give you a quick overview before diving into the details:
 
-- **Table of Contents (ToC)**: At the beginning of the Markdown file, there is a list of links to each paper within the document. Importantly, the text for each link in the ToC is **not** the paper's title, but rather a **simplified several-word summary** of the paper's main contribution. This allows you to quickly scan the core findings of the day.
+- **Table of Contents (ToC)**: At the beginning of the Markdown file, there is a list of links to each paper.
 - **Detailed Summaries**: For each paper, the summary is split into two distinct sections:
   - **Background**: Explains the context, the problem domain, and why the research is necessary.
   - **Summary**: Details the specific methods, results, and contributions of the paper.
@@ -62,18 +62,18 @@ If you want to fork this repository to track your own interests, you will need t
 
    **Variables** (non-sensitive configuration):
 
-   | Name                   | Example                                 | Description                                        |
-   | ---------------------- | --------------------------------------- | -------------------------------------------------- |
-   | `MODEL_NAME`           | `deepseek-v4-pro`                       | Model name for LLM summarization                   |
-   | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                      |
-   | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track          |
-   | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics |
-   | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries               |
-   | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high)     |
-   | `CONCURRENCY_LIMIT`    | `10`                                    | Number of LLM calls to run in parallel             |
+   | Name                   | Example                                 | Description                                          |
+   | ---------------------- | --------------------------------------- | ---------------------------------------------------- |
+   | `MODEL_NAME`           | `deepseek-v4-pro`                       | Model name for LLM summarization                     |
+   | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                        |
+   | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track            |
+   | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics   |
+   | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries                 |
+   | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high)       |
+   | `CONCURRENCY_LIMIT`    | `10`                                    | Number of LLM calls to run in parallel               |
    | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN scoring |
-   | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push      |
-   | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push     |
+   | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push        |
+   | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push       |
 
 2. **Zotero Library**:
    - Export your personal Zotero library to a `.bib` file. **Make sure to configure the export to include abstracts**.

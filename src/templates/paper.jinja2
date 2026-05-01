@@ -2,7 +2,7 @@
 {% for group in grouped_data %}
 ## <a id="toc-{{ loop.index }}"></a>{{ group.topic }}
 {% for paper in group.papers %}
-- [{{ paper.toc_summary }} ({{ "%.4f"|format(paper.similarity_score) }})](#{{ paper.id }})
+- [{{ paper.title }} ({{ "%.4f"|format(paper.similarity_score) }})](#{{ paper.id }})
 {%- endfor %}
 {% endfor %}
 ---

@@ -31,9 +31,6 @@ class PaperSummary(BaseModel):
     topic: str = Field(
         description="从系统提供的子领域列表中，选择一个最适合该论文的主题分类。"
     )
-    toc_summary: str = Field(
-        description="Use a very short, simple, and highly readable English phrase (under 10 words) to act as a Table of Contents entry. It should immediately convey the core topic without complex academic jargon. This must be in English regardless of the target language."
-    )
     background_knowledge: str = Field(
         description="脱离论文的具体细节，从更宏观的视角详细介绍该子领域的基础范式、整体概况或核心物理图像，为读者提供足够充分的背景科普与前置知识储备。"
     )
@@ -47,11 +44,10 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
     return (
         f"你是一位严谨、专业的天文领域研究者，精通文献阅读和信息提取。\n"
         f"你的任务是基于提供的文献摘要以及你的领域世界知识，输出一段结构化的 {language} 总结。\n"
-        f"请务必返回一个合法的 JSON 对象，包含以下四个字段：\n"
+        f"请务必返回一个合法的 JSON 对象，包含以下三个字段：\n"
         f"1. `topic`: 必须从以下预定义的列表中选择一个最适合该论文的主题：[{topics_str}]。如果确实不属于任何一个，选择 'Others'（如果列表中有的话，或者自己选择最接近的一个，但强烈建议遵循列表）。注意：为了避免碎片化，只要有一点相关性，请尽量归入提供的主题之一。\n"
-        f"2. `toc_summary`: Use a very short, simple, and highly readable English phrase (under 10 words) to act as a Table of Contents entry. It should immediately convey the core topic without complex academic jargon. This MUST be in English regardless of the {language} variable.\n"
-        f"3. `background_knowledge`：跳出这篇论文的具体细节，从宏观的视角使用 {language} 详细介绍该子领域的基础物理图像、整体研究概况或核心范式，为读者提供一个宽泛且充实的背景科普与前置知识储备。\n"
-        f"4. `contribution`：使用 {language} 清晰、忠实于原摘要地阐述论文的具体核心工作与主要科学发现。\n"
+        f"2. `background_knowledge`：跳出这篇论文的具体细节，从宏观的视角使用 {language} 详细介绍该子领域的基础物理图像、整体研究概况或核心范式，为读者提供一个宽泛且充实的背景科普与前置知识储备。\n"
+        f"3. `contribution`：使用 {language} 清晰、忠实于原摘要地阐述论文的具体核心工作与主要科学发现。\n"
         f"排版与翻译指引：\n"
         f"- 【严禁使用 Markdown 标题】：不要在 `background_knowledge` 或 `contribution` 等字段内部自行添加 `#`, `##`, `###` 等 Markdown 标题（例如 `### 背景知识` 或 `#### 核心发现`）。外部渲染模板已经自带了各个章节的标题，如果你自己加上会导致最终排版出现重复与混乱。只输出纯粹的正文段落或无序列表即可。\n"
         f"- 遇到专业名词时，如果有合适的 {language} 翻译，请使用翻译并在首次出现时用括号标注英文原词；如果没有通用翻译，请直接保持英文原词。\n"
@@ -61,7 +57,6 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
         f"请输出格式如下的 JSON：\n"
         "{\n"
         '  "topic": "...",\n'
-        '  "toc_summary": "...",\n'
         '  "background_knowledge": "...",\n'
         '  "contribution": "..."\n'
         "}"
@@ -112,7 +107,6 @@ async def enhance_paper(
                     "pdf_url": paper["pdf_url"],
                     "categories": paper["categories"],
                     "topic": result.topic,
-                    "toc_summary": result.toc_summary,
                     "background_knowledge": result.background_knowledge,
                     "contribution": result.contribution,
                     "summary": paper["summary"],
@@ -136,7 +130,6 @@ async def enhance_paper(
                     "pdf_url": paper["pdf_url"],
                     "categories": paper["categories"],
                     "topic": "Others",
-                    "toc_summary": "Failed to generate summary.",
                     "background_knowledge": f"Failed when generating background knowledge. {e}",
                     "contribution": f"Failed when generating contribution. {e}",
                     "summary": paper["summary"],
