@@ -1,6 +1,6 @@
 # daily-arXiv-astro-ph
 
-This repository was originally forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), but it has since been heavily modified and essentially rewritten now. It crawls daily published arXiv articles (focusing on `astro-ph.GA`, `astro-ph.CO`), scores and categorizes them, and generates daily summaries using an LLM.
+This repository was originally forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), but it has since been heavily modified and essentially rewritten now. It crawls daily published arXiv articles (focusing on `astro-ph.GA`, `astro-ph.CO`, `astro-ph.IM`), scores and categorizes them, and generates daily summaries using an LLM.
 
 ## Repository Structure
 
