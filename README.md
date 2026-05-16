@@ -7,7 +7,7 @@ This repository was originally forked from [daily-arXiv-ai-enhanced](https://git
 To keep the codebase clean and avoid commit conflicts from automated daily updates, this repository uses a split-branch strategy:
 
 - **`main` branch**: Contains all the crawler and summarization code, prompt templates, and the GitHub Action workflow configurations.
-- **`data` branch**: Acts as the storage for the generated daily summaries (Markdown and JSONL files). The GitHub automation pushes new data to this branch daily without touching the main codebase.
+- **[`data`](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data) branch**: Acts as the storage for the generated daily summaries (Markdown and JSONL files). The GitHub automation pushes new data to this branch daily without touching the main codebase.
 
 ## How It Works
 
@@ -43,7 +43,7 @@ The output is provided as Markdown files (located in the `data` branch). Each fi
   - **Background**: Explains the context, the problem domain, and why the research is necessary.
   - **Summary**: Details the specific methods, results, and contributions of the paper.
 
-An example output can be found at [`2026-04-27.md`](2026-04-27.md) in the repository root. For the full archive of daily summaries, see the **[data](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data)** branch.
+An example output can be found at [`2026-05-16.md`](2026-05-16.md) in the repository root.
 
 ## How to Fork and Use
 
