@@ -29,8 +29,8 @@ def _format_date_distribution(results: List[arxiv.Result]) -> str:
     return "{" + ", ".join(f"{d}: {n}" for d, n in ordered) + "}"
 
 
-def fetch_papers_for_category(category: str) -> List[arxiv.Result]:
-    """Fetch the latest batch of papers for a specific category using RSS feed."""
+def _fetch_ids_from_rss(category: str) -> List[str]:
+    """Fetch the latest arXiv IDs for a specific category using RSS feed."""
     url = f"https://rss.arxiv.org/rss/{category}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -76,36 +76,41 @@ def fetch_papers_for_category(category: str) -> List[arxiv.Result]:
     logger.info(
         "[%s] Found %d 'new'/'cross' submissions in RSS feed.", category, len(new_ids)
     )
-
-    # Fetch full metadata via arXiv API
-    search = arxiv.Search(id_list=new_ids)
-    client = arxiv.Client()
-    try:
-        results = list(client.results(search))
-    except Exception as e:
-        logger.error("[%s] Failed to fetch metadata from arXiv API: %s", category, e)
-        return []
-
-    for p in results:
-        logger.info(
-            f"Fetched [{category}]: ID: {p.get_short_id()} | Updated: {p.updated.date()} | Version: {_paper_version(p)} | Primary Category: {getattr(p, 'primary_category', 'N/A')}"
-        )
-
-    return results
+    return new_ids
 
 
 def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
     """Fetch the latest papers for all given categories and deduplicate."""
-    all_papers = []
-    seen_ids = set()
+    unique_ids = set()
     for cat in categories:
-        logger.info(f"Fetching arXiv papers for category: {cat}")
-        papers = fetch_papers_for_category(cat)
-        logger.info("[%s] papers returned after filtering: %d", cat, len(papers))
-        for p in papers:
-            if p.get_short_id() not in seen_ids:
-                all_papers.append(p)
-                seen_ids.add(p.get_short_id())
+        logger.info(f"Fetching arXiv IDs via RSS for category: {cat}")
+        cat_ids = _fetch_ids_from_rss(cat)
+        unique_ids.update(cat_ids)
 
-    logger.info(f"Fetched {len(all_papers)} unique papers across all categories.")
-    return all_papers
+    if not unique_ids:
+        logger.info("No new papers found across any categories.")
+        return []
+
+    id_list = list(unique_ids)
+    logger.info(
+        f"Fetched {len(id_list)} unique paper IDs across all categories in total. Querying arXiv API..."
+    )
+
+    # Fetch full metadata via arXiv API in one single batch request
+    search = arxiv.Search(id_list=id_list)
+    client = arxiv.Client()
+    try:
+        results = list(client.results(search))
+    except Exception as e:
+        logger.error("Failed to fetch metadata from arXiv API: %s", e)
+        return []
+
+    for p in results:
+        logger.info(
+            f"Fetched arXiv metadata: ID: {p.get_short_id()} | Updated: {p.updated.date()} | Version: {_paper_version(p)} | Primary Category: {getattr(p, 'primary_category', 'N/A')}"
+        )
+
+    logger.info(
+        f"Successfully fetched {len(results)} fully detailed papers from arXiv API."
+    )
+    return results
