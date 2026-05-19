@@ -9,6 +9,12 @@ import arxiv
 
 logger = logging.getLogger(__name__)
 
+class TimeoutSession(requests.Session):
+    def request(self, *args, **kwargs):
+        # Default to 30 seconds timeout if not explicitly set
+        kwargs.setdefault('timeout', 30)
+        return super().request(*args, **kwargs)
+
 class CustomRetry(Retry):
     def get_backoff_time(self):
         retry_count = len(self.history)
@@ -17,8 +23,24 @@ class CustomRetry(Retry):
         # 1st retry: 5s, 2nd: 15s, 3rd: 45s, 4th: 135s, 5th: 405s, 6th: 1215s (20 mins)
         return 5 * (3 ** (retry_count - 1))
 
+    def increment(self, method=None, url=None, response=None, error=None, _pool=None, _stacktrace=None):
+        retry_count = len(self.history)
+        backoff = self.get_backoff_time()
+
+        if response:
+            status = response.status
+            retry_after = response.headers.get("Retry-After")
+            if retry_after:
+                logger.warning(f"Request failed with status {status}. Server requested Retry-After: {retry_after}s. Retrying attempt {retry_count + 1}...")
+            else:
+                logger.warning(f"Request failed with status {status}. Backing off for {backoff}s before retry {retry_count + 1}...")
+        elif error:
+            logger.warning(f"Request encountered error: {error}. Backing off for {backoff}s before retry {retry_count + 1}...")
+            
+        return super().increment(method, url, response, error, _pool, _stacktrace)
+
 def get_robust_session() -> requests.Session:
-    session = requests.Session()
+    session = TimeoutSession()
     retry_strategy = CustomRetry(
         total=8,
         status_forcelist=[429, 500, 502, 503, 504],
