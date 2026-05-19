@@ -1,13 +1,33 @@
 import logging
-import urllib.request
+import requests
 import xml.etree.ElementTree as ET
 from collections import Counter
 from typing import List
-
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import arxiv
 
 logger = logging.getLogger(__name__)
 
+class CustomRetry(Retry):
+    def get_backoff_time(self):
+        retry_count = len(self.history)
+        if retry_count == 0:
+            return 0
+        # 1st retry: 5s, 2nd: 15s, 3rd: 45s, 4th: 135s, 5th: 405s, 6th: 1215s (20 mins)
+        return 5 * (3 ** (retry_count - 1))
+
+def get_robust_session() -> requests.Session:
+    session = requests.Session()
+    retry_strategy = CustomRetry(
+        total=8,
+        status_forcelist=[429, 500, 502, 503, 504],
+        respect_retry_after_header=True
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
 
 def _paper_version(paper: arxiv.Result) -> int:
     """Extract version number from short id, e.g. 2601.00001v2 -> 2."""
@@ -33,9 +53,10 @@ def _fetch_ids_from_rss(category: str) -> List[str]:
     """Fetch the latest arXiv IDs for a specific category using RSS feed."""
     url = f"https://rss.arxiv.org/rss/{category}"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req) as response:
-            xml_data = response.read()
+        session = get_robust_session()
+        response = session.get(url, headers={"User-Agent": "Mozilla/5.0 (daily-arxiv-astro-ph)"}, timeout=30)
+        response.raise_for_status()
+        xml_data = response.content
     except Exception as e:
         logger.error("Failed to fetch RSS for %s: %s", category, e)
         return []
@@ -98,7 +119,12 @@ def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
 
     # Fetch full metadata via arXiv API in one single batch request
     search = arxiv.Search(id_list=id_list)
-    client = arxiv.Client()
+
+    # Use custom client with higher base delay and a custom requests session
+    # to handle exponential backoff and Retry-After headers automatically.
+    client = arxiv.Client(page_size=100, delay_seconds=10.0, num_retries=3)
+    client._session = get_robust_session()
+
     try:
         results = list(client.results(search))
     except Exception as e:
