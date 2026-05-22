@@ -7,9 +7,10 @@ permissions:
   contents: write
 
 on:
-  # Runs at 03:00 UTC every Monday, Tuesday, Wednesday, Thursday, Friday.
-  schedule:
-    - cron: "12 03 * * 1-5"
+  # Triggered externally by cron-job.org via GitHub API (repository_dispatch).
+  repository_dispatch:
+    types: [trigger-arxiv-daily]
+  # Manual trigger with force_regen option.
   workflow_dispatch:
     inputs:
       force_regen:

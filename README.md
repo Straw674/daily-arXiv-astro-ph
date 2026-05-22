@@ -7,7 +7,12 @@ This repository was originally forked from [daily-arXiv-ai-enhanced](https://git
 To keep the codebase clean and avoid commit conflicts from automated daily updates, this repository uses a split-branch strategy:
 
 - **`main` branch**: Contains all the crawler and summarization code, prompt templates, and the GitHub Action workflow configurations.
-- **[`data`](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data) branch**: Acts as the storage for the generated daily summaries (Markdown and JSONL files). The GitHub automation pushes new data to this branch daily without touching the main codebase.
+- **[`data`](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data) branch**: Acts as the storage for the generated daily summaries (Markdown and JSONL files). The automation pushes new data to this branch on each run without touching the main codebase.
+
+## Scheduling
+
+The GitHub Actions workflow **does not use a built-in schedule**. Instead, it is triggered externally by [cron-job.org](https://cron-job.org) via a `repository_dispatch` event sent to the GitHub API, running every weekday (Monday to Friday) at 04:43 UTC. This avoids the unreliable delays common with GitHub Actions' native cron scheduler. The workflow can also be triggered manually from the **Actions** tab using the **Run workflow** button, which exposes a `force_regen` option to re-generate data for the current day.
+
 
 ## How It Works
 
