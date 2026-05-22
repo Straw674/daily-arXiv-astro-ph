@@ -1,4 +1,4 @@
-- This branch is automatically updated by GitHub Actions to maintain a clear separation between code and data. The pipeline runs every weekday (Monday to Friday) at 03:12 UTC (`12 03 * * 1-5`) to avoid congestion around the top of the hour.
+- This branch is automatically updated by GitHub Actions to maintain a clear separation between code and data. The pipeline is triggered externally by [cron-job.org](https://cron-job.org) via a `repository_dispatch` event every weekday (Monday to Friday) at 04:43 UTC.
 - Summaries prior to 2026-04-25 were generated using an old version of pipeline. The current pipeline has been operational since 2026-04-27.
 - The operational cost is approximately 1 RMB per 100 papers (assuming DeepSeek v4 pro with `reasoning_effort` set to `max`).
 
