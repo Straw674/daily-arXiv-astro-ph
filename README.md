@@ -75,7 +75,7 @@ If you want to fork this repository to track your own interests, you will need t
    | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics   |
    | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries                 |
    | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high)       |
-   | `CONCURRENCY_LIMIT`    | `10`                                    | Number of LLM calls to run in parallel               |
+   | `CONCURRENCY_LIMIT`    | `100`                                   | Number of LLM calls to run in parallel               |
    | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN scoring |
    | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push        |
    | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push       |

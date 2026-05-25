@@ -18,10 +18,8 @@ class TimeoutSession(requests.Session):
 class CustomRetry(Retry):
     def get_backoff_time(self):
         retry_count = len(self.history)
-        if retry_count == 0:
-            return 0
         # 1st retry: 5s, 2nd: 15s, 3rd: 45s, 4th: 135s, 5th: 405s, 6th: 1215s (20 mins)
-        return 5 * (3 ** (retry_count - 1))
+        return 5 * (3 ** retry_count)
 
     def increment(self, method=None, url=None, response=None, error=None, _pool=None, _stacktrace=None):
         retry_count = len(self.history)
@@ -144,7 +142,7 @@ def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
 
     # Use custom client with higher base delay and a custom requests session
     # to handle exponential backoff and Retry-After headers automatically.
-    client = arxiv.Client(page_size=100, delay_seconds=10.0, num_retries=3)
+    client = arxiv.Client(page_size=500, delay_seconds=10.0, num_retries=3)
     client._session = get_robust_session()
 
     try:
