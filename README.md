@@ -1,6 +1,6 @@
 # daily-arXiv-astro-ph
 
-This repository was originally forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), but it has since been heavily modified and essentially rewritten now. It crawls daily published arXiv articles (focusing on `astro-ph.GA`, `astro-ph.CO`, `astro-ph.IM`), scores and categorizes them, and generates daily summaries using an LLM.
+This repository was originally forked from [daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced), but it has since been heavily modified and essentially rewritten now. It crawls daily published arXiv articles (focusing on `astro-ph.GA`, `astro-ph.CO`, `astro-ph.IM`), evaluates their relevance, categorizes them, and generates daily summaries using an LLM.
 
 ## Repository Structure
 
@@ -16,14 +16,14 @@ The GitHub Actions workflow **does not use a built-in schedule**. Instead, it is
 
 ## How It Works
 
-### Paper Scoring & Ranking
+### Paper Relevance & Sorting
 
-To help prioritize which papers to read, this project uses text embeddings and a k-Nearest Neighbors (kNN) approach for personalized scoring:
+To help prioritize which papers to read, this project uses text embeddings and a k-Nearest Neighbors (kNN) approach to calculate personalized relevance:
 
 1. **Reference Library**: The user exports their personal reference library from Zotero as a `.bib` file (which must include paper abstracts).
 2. **Embedding Generation**: By running `zotero.py`, this `.bib` file is processed into a `.json` cache containing the embeddings of the reference papers. This serves as a long-term reference for your research interests.
-3. **Daily Scoring**: Each daily arXiv paper's title and abstract are embedded and compared against the reference library using kNN. This generates a **relevance score** (specifically, the average cosine similarity of the top-k most similar papers in your reference library, where `k` is controlled by `KNN_TOP_K` and defaults to 10) for every daily paper, effectively ranking them according to your personal interests.
-4. **Ranking**: Papers are first grouped by topic, and within each topic, they are sorted by this kNN score in descending order. Topics themselves are also ranked based on a weighted sum of the scores of all papers in the group, using an exponential decay (factor of 0.5) according to their rank. This balances both the peak relevance and the overall density of interesting papers in each topic.
+3. **Relevance Calculation**: Each daily arXiv paper's title and abstract are embedded and compared against the reference library using kNN. This generates a **relevance metric** (specifically, the average cosine similarity of the top-k most similar papers in your reference library, where `k` is controlled by `KNN_TOP_K` and defaults to 10) for every daily paper, effectively sorting them according to your personal interests.
+4. **Sorting**: Papers are first grouped by topic, and within each topic, they are sorted by this kNN similarity in descending order. Topics themselves are also ordered based on a weighted sum of the similarities of all papers in the group, using an exponential decay (factor of 0.5) according to their position. This balances both the peak relevance and the overall density of interesting papers in each topic.
 
 ### Paper Grouping
 
@@ -76,7 +76,7 @@ If you want to fork this repository to track your own interests, you will need t
    | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries                 |
    | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high)       |
    | `CONCURRENCY_LIMIT`    | `100`                                   | Number of LLM calls to run in parallel               |
-   | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN scoring |
+   | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN relevance calculation |
    | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push        |
    | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push       |
 
@@ -85,4 +85,4 @@ If you want to fork this repository to track your own interests, you will need t
    - Upload this `.bib` file to the designated directory (`zotero/` by default) in the repository.
 3. **Generate Embeddings**:
    - Run the `zotero.py` script locally to process your `.bib` file and generate the `.json` embedding reference file.
-   - Commit and push the resulting `.json` file to the repository. This `.json` file will be used by the GitHub Action to score daily papers efficiently, without needing to re-embed your entire library every time.
+   - Commit and push the resulting `.json` file to the repository. This `.json` file will be used by the GitHub Action to evaluate daily papers efficiently, without needing to re-embed your entire library every time.
