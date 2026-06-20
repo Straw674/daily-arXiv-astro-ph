@@ -5,8 +5,10 @@ from collections import Counter
 from typing import List
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from urllib3.util.retry import Retry
 import arxiv
+import urllib.request
+from bs4 import BeautifulSoup
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -142,29 +144,61 @@ def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
         f"Fetched {len(id_list)} unique paper IDs across all categories in total. Querying arXiv API..."
     )
 
-    # Fetch full metadata via arXiv API in one single batch request
-    search = arxiv.Search(id_list=id_list)
+    return fetch_papers_by_ids(id_list)
 
-    # Use custom client with higher base delay and a custom requests session
-    # to handle exponential backoff and Retry-After headers automatically.
-    client = arxiv.Client(page_size=500, delay_seconds=10.0, num_retries=3)
-    client._session = get_robust_session()
 
+def fetch_papers_for_date(categories: List[str], target_date_str: str) -> List[arxiv.Result]:
+    """Fetch papers for a specific date using the pastweek page."""
     try:
-        results = list(client.results(search))
-    except Exception as e:
-        logger.error("Failed to fetch metadata from arXiv API: %s", e)
+        dt = datetime.strptime(target_date_str, "%Y-%m-%d")
+        formatted_date = dt.strftime("%d %b %Y")
+        if formatted_date.startswith("0"):
+            formatted_date = formatted_date[1:]
+    except ValueError:
+        logger.error(f"Invalid date format: {target_date_str}. Expected YYYY-MM-DD.")
         return []
 
-    for p in results:
-        logger.info(
-            f"Fetched arXiv metadata: ID: {p.get_short_id()} | Updated: {p.updated.date()} | Version: {_paper_version(p)} | Primary Category: {getattr(p, 'primary_category', 'N/A')}"
-        )
+    unique_ids = set()
+    for cat in categories:
+        logger.info(f"Scraping pastweek page for {cat} on {formatted_date}")
+        url = f"https://arxiv.org/list/{cat}/pastweek?show=2000"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        try:
+            with urllib.request.urlopen(req) as response:
+                html = response.read().decode('utf-8')
+        except Exception as e:
+            logger.error(f"Error fetching {url}: {e}")
+            continue
 
-    logger.info(
-        f"Successfully fetched {len(results)} fully detailed papers from arXiv API."
-    )
-    return results
+        soup = BeautifulSoup(html, 'html.parser')
+        h3_tags = soup.find_all('h3')
+        
+        for h3 in h3_tags:
+            if formatted_date in h3.text:
+                current = h3.next_sibling
+                while current and current.name != 'h3':
+                    if current.name == 'dt':
+                        dt_tag = current
+                        descriptor = dt_tag.find('span', class_='descriptor')
+                        is_replace = False
+                        if descriptor and 'replaced' in descriptor.text.lower():
+                            is_replace = True
+                            
+                        a_tag = dt_tag.find('a', title='Abstract')
+                        if a_tag:
+                            paper_id = a_tag.text.replace('arXiv:', '').strip()
+                            if not is_replace:
+                                unique_ids.add(paper_id)
+                    current = current.next_sibling
+                break
+
+    if not unique_ids:
+        logger.info(f"No papers found on pastweek page for date {target_date_str}.")
+        return []
+        
+    return fetch_papers_by_ids(list(unique_ids))
+
+
 
 
 def fetch_papers_by_ids(id_list: List[str]) -> List[arxiv.Result]:
