@@ -104,8 +104,12 @@ def _fetch_ids_from_rss(category: str) -> List[str]:
         ]:
             link_elem = item.find("link")
             if link_elem is not None and link_elem.text:
-                # link is typically https://arxiv.org/abs/2604.22105
-                paper_id = link_elem.text.strip().split("/")[-1]
+                # link is typically https://arxiv.org/abs/2604.22105 or https://arxiv.org/abs/astro-ph/9605168
+                link_text = link_elem.text.strip()
+                if "/abs/" in link_text:
+                    paper_id = link_text.split("/abs/")[-1]
+                else:
+                    paper_id = link_text.split("/")[-1]
                 new_ids.append(paper_id)
 
     if not new_ids:

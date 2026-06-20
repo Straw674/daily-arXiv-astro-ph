@@ -212,6 +212,11 @@ async def main():
         choices=[1, 2, 3],
         help="1: Fetch, 2: LLM, 3: Embed and Render. If omitted, runs all sequentially.",
     )
+    parser.add_argument(
+        "--date",
+        type=str,
+        help="Override the current date for the run (format: YYYY-MM-DD).",
+    )
     args = parser.parse_args()
 
     load_dotenv()
@@ -229,7 +234,7 @@ async def main():
 
     os.makedirs(data_dir, exist_ok=True)
 
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today_str = args.date if args.date else datetime.now(timezone.utc).strftime("%Y-%m-%d")
     fetched_jsonl_path = os.path.join(data_dir, f"{today_str}_fetched.jsonl")
     jsonl_path = os.path.join(data_dir, f"{today_str}.jsonl")
     md_path = os.path.join(data_dir, f"{today_str}.md")

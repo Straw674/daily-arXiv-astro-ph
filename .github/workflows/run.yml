@@ -17,6 +17,11 @@ on:
         description: "Force regenerate data for today"
         type: boolean
         default: false
+      target_date:
+        description: "Target date (YYYY-MM-DD), leave empty for today"
+        type: string
+        required: false
+        default: ""
 
 jobs:
   build:
@@ -69,9 +74,14 @@ jobs:
           ZOTERO_BIB_PATH: ${{ vars.ZOTERO_BIB_PATH }}
           OUTPUT_ROOT: "dist"
           FORCE_REGEN: ${{ github.event.inputs.force_regen || 'false' }}
+          TARGET_DATE: ${{ github.event.inputs.target_date || '' }}
         run: |
           source .venv/bin/activate
-          uv run python src/main.py
+          if [ -n "$TARGET_DATE" ]; then
+            uv run python src/main.py --date "$TARGET_DATE"
+          else
+            uv run python src/main.py
+          fi
 
       - name: Publish generated markdown to data branch
         uses: peaceiris/actions-gh-pages@v4
