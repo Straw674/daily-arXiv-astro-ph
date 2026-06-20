@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from openai import AsyncOpenAI, OpenAI
 
-from fetcher import fetch_papers
+from fetcher import fetch_papers, fetch_papers_by_ids
 from llm import enhance_papers_concurrently, generate_daily_topics
 from renderer import render_daily_markdown, render_readme
 from embedding import get_embeddings_in_batches, compute_knn_scores
@@ -21,7 +21,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def run_step1(categories, fetched_jsonl_path, force_regen):
+def run_step1(categories, fetched_jsonl_path, force_regen, explicit_ids=None):
     if force_regen:
         logger.info("Force regeneration enabled. Removing existing files.")
         if os.path.exists(fetched_jsonl_path):
@@ -32,7 +32,10 @@ def run_step1(categories, fetched_jsonl_path, force_regen):
         return
 
     logger.info("Fetching new papers from arXiv...")
-    papers = fetch_papers(categories)
+    if explicit_ids:
+        papers = fetch_papers_by_ids(explicit_ids)
+    else:
+        papers = fetch_papers(categories)
     if not papers:
         logger.info("No new papers found today.")
         return
@@ -217,6 +220,11 @@ async def main():
         type=str,
         help="Override the current date for the run (format: YYYY-MM-DD).",
     )
+    parser.add_argument(
+        "--ids",
+        type=str,
+        help="Comma-separated list of arXiv IDs to fetch directly (skips RSS).",
+    )
     args = parser.parse_args()
 
     load_dotenv()
@@ -241,7 +249,8 @@ async def main():
     readme_path = os.path.join(output_root, "README.md")
 
     if args.step in [1, None]:
-        run_step1(categories, fetched_jsonl_path, force_regen)
+        explicit_ids = args.ids.split(",") if args.ids else None
+        run_step1(categories, fetched_jsonl_path, force_regen, explicit_ids)
 
     if args.step in [2, None]:
         await run_step2(

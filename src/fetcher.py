@@ -5,6 +5,7 @@ from collections import Counter
 from typing import List
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 import arxiv
 
 logger = logging.getLogger(__name__)
@@ -146,6 +147,42 @@ def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
 
     # Use custom client with higher base delay and a custom requests session
     # to handle exponential backoff and Retry-After headers automatically.
+    client = arxiv.Client(page_size=500, delay_seconds=10.0, num_retries=3)
+    client._session = get_robust_session()
+
+    try:
+        results = list(client.results(search))
+    except Exception as e:
+        logger.error("Failed to fetch metadata from arXiv API: %s", e)
+        return []
+
+    for p in results:
+        logger.info(
+            f"Fetched arXiv metadata: ID: {p.get_short_id()} | Updated: {p.updated.date()} | Version: {_paper_version(p)} | Primary Category: {getattr(p, 'primary_category', 'N/A')}"
+        )
+
+    logger.info(
+        f"Successfully fetched {len(results)} fully detailed papers from arXiv API."
+    )
+    return results
+
+
+def fetch_papers_by_ids(id_list: List[str]) -> List[arxiv.Result]:
+    """Fetch the latest papers for a specific list of IDs."""
+    fixed_ids = []
+    for pid in id_list:
+        pid = pid.strip()
+        # Fix broken 7-digit old IDs from the log
+        if "." not in pid and len(pid) == 7 and pid.isdigit():
+            fixed_ids.append(f"astro-ph/{pid}")
+        else:
+            fixed_ids.append(pid)
+
+    logger.info(
+        f"Fetching {len(fixed_ids)} unique paper IDs directly via arXiv API..."
+    )
+
+    search = arxiv.Search(id_list=fixed_ids)
     client = arxiv.Client(page_size=500, delay_seconds=10.0, num_retries=3)
     client._session = get_robust_session()
 

@@ -22,6 +22,11 @@ on:
         type: string
         required: false
         default: ""
+      target_ids:
+        description: "Comma-separated list of arXiv IDs to fetch (skips RSS)"
+        type: string
+        required: false
+        default: ""
 
 jobs:
   build:
@@ -75,13 +80,17 @@ jobs:
           OUTPUT_ROOT: "dist"
           FORCE_REGEN: ${{ github.event.inputs.force_regen || 'false' }}
           TARGET_DATE: ${{ github.event.inputs.target_date || '' }}
+          TARGET_IDS: ${{ github.event.inputs.target_ids || '' }}
         run: |
           source .venv/bin/activate
+          CMD="uv run python src/main.py"
           if [ -n "$TARGET_DATE" ]; then
-            uv run python src/main.py --date "$TARGET_DATE"
-          else
-            uv run python src/main.py
+            CMD="$CMD --date \"$TARGET_DATE\""
           fi
+          if [ -n "$TARGET_IDS" ]; then
+            CMD="$CMD --ids \"$TARGET_IDS\""
+          fi
+          eval $CMD
 
       - name: Publish generated markdown to data branch
         uses: peaceiris/actions-gh-pages@v4
