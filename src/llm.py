@@ -51,7 +51,7 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
         f"排版与翻译指引：\n"
         f"- 【严禁使用 Markdown 标题】：不要在 `background_knowledge` 或 `contribution` 等字段内部自行添加 `#`, `##`, `###` 等 Markdown 标题（例如 `### 背景知识` 或 `#### 核心发现`）。外部渲染模板已经自带了各个章节的标题，如果你自己加上会导致最终排版出现重复与混乱。只输出纯粹的正文段落或无序列表即可。\n"
         f"- 遇到专业名词时，如果有合适的 {language} 翻译，请使用翻译并在首次出现时用括号标注英文原词；如果没有通用翻译，请直接保持英文原词。\n"
-        f"- 请遵循通用的排版美学，在 {language} 字符与英文字母、数字之间自然地保留一个半角空格。\n"
+        f"- 【标点与空格规范】：请遵循规范的中文学术排版美学。必须使用标准全角中文标点（例如使用中文双引号 “ ” 而非英文引号或单引号）；在 {language} 字符与英文字母、数字之间自然地保留一个半角空格（例如 `利用 DESI-DR1 巡天样本` 而非 `利用DESI-DR1巡天样本`）。\n"
         f"- 如果输出内容包含多个要点或逻辑层次，请优先采用分段或无序列表（Bullet points）进行组织，避免将所有内容挤在臃肿的一整段中。\n"
         f"- 在表示数学乘号时，请严格使用符号 `×` 或字母 `x`，绝对不要使用星号 `*`，以免引起 Markdown 语法解析为斜体。\n\n"
         f"请输出格式如下的 JSON：\n"
@@ -72,6 +72,11 @@ async def enhance_paper(
     topics: list[str],
 ) -> Dict[str, Any]:
     MAX_RETRIES = 3
+    extra_kwargs: Dict[str, Any] = {}
+    reasoning_effort = os.getenv("LLM_REASONING_EFFORT")
+    if reasoning_effort:
+        extra_kwargs["reasoning_effort"] = reasoning_effort
+
     async with sem:
         prompt = f"Title: {paper['title']}\n\nAbstract: {paper['summary']}"
         for attempt in range(MAX_RETRIES + 1):
@@ -93,8 +98,7 @@ async def enhance_paper(
                     ],
                     response_format={"type": "json_object"},
                     stream=False,
-                    reasoning_effort=os.getenv("LLM_REASONING_EFFORT") or "max",
-                    extra_body={"thinking": {"type": "enabled"}},
+                    **extra_kwargs,
                 )
                 content = response.choices[0].message.content
                 parsed = json.loads(_sanitize_json_string(content))
@@ -181,6 +185,11 @@ async def generate_daily_topics(
     )
 
     MAX_RETRIES = 3
+    extra_kwargs: Dict[str, Any] = {}
+    reasoning_effort = os.getenv("LLM_REASONING_EFFORT")
+    if reasoning_effort:
+        extra_kwargs["reasoning_effort"] = reasoning_effort
+
     for attempt in range(MAX_RETRIES + 1):
         try:
             if attempt == 0:
@@ -194,8 +203,7 @@ async def generate_daily_topics(
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
                 stream=False,
-                reasoning_effort=os.getenv("LLM_REASONING_EFFORT") or "max",
-                extra_body={"thinking": {"type": "enabled"}},
+                **extra_kwargs,
             )
             content = response.choices[0].message.content
             parsed = json.loads(_sanitize_json_string(content))

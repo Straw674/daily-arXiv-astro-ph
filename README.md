@@ -54,14 +54,14 @@ An example output can be found at [`2026-05-16.md`](2026-05-16.md) in the reposi
 
 If you want to fork this repository to track your own interests, you will need to complete the following setup steps:
 
-1. **GitHub Secrets & Variables**: In your forked repository, go to `Settings > Secrets and variables > Actions` and configure the following (or search `os.getenv` in the codebase for a complete list). At least, You will need two sets of OpenAI-compatible API parameters — one for LLM summarization and one for embedding. Please note that the current implementation in `src/llm.py` uses DeepSeek's specific API calling convention (e.g., `extra_body={"thinking": {"type": "enabled"}}`). If you switch to a different LLM provider, you may need to adjust the parameters in `src/llm.py` to match their specific requirements.
+1. **GitHub Secrets & Variables**: In your forked repository, go to `Settings > Secrets and variables > Actions` and configure the following (or search `os.getenv` in the codebase for a complete list). You will need two sets of OpenAI-compatible API parameters — one for LLM summarization (e.g., Google Gemini, OpenAI, DeepSeek, or Qwen) and one for embedding.
 
    **Secrets** (sensitive credentials):
 
    | Name                 | Description                                         |
    | -------------------- | --------------------------------------------------- |
-   | `OPENAI_API_KEY`     | API key for the LLM used for summarization          |
-   | `OPENAI_BASE_URL`    | Base URL of the OpenAI-compatible summarization API |
+   | `OPENAI_API_KEY`     | API key for the LLM used for summarization (e.g. Gemini API Key) |
+   | `OPENAI_BASE_URL`    | Base URL of the OpenAI-compatible summarization API (e.g., `https://generativelanguage.googleapis.com/v1beta/openai/`) |
    | `EMBEDDING_API_KEY`  | API key for the embedding API                       |
    | `EMBEDDING_BASE_URL` | Base URL of the embedding API                       |
 
@@ -69,12 +69,12 @@ If you want to fork this repository to track your own interests, you will need t
 
    | Name                   | Example                                 | Description                                          |
    | ---------------------- | --------------------------------------- | ---------------------------------------------------- |
-   | `MODEL_NAME`           | `deepseek-v4-pro`                       | Model name for LLM summarization                     |
+   | `MODEL_NAME`           | `gemini-3.5-flash-lite`                 | Model name for LLM summarization                     |
    | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                        |
    | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track            |
    | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics   |
    | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries                 |
-   | `LLM_REASONING_EFFORT` | `max`                                   | Reasoning effort for the LLM (e.g., max, high)       |
+   | `LLM_REASONING_EFFORT` | (optional)                              | Reasoning effort for the LLM (e.g., medium, high)   |
    | `CONCURRENCY_LIMIT`    | `100`                                   | Number of LLM calls to run in parallel               |
    | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN relevance calculation |
    | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push        |

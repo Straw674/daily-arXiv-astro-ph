@@ -1,18 +1,18 @@
-import os
-import asyncio
-import logging
-from datetime import datetime, timezone
-import json
 import argparse
+import asyncio
+import json
+import logging
+import os
 from collections import defaultdict
-from dotenv import load_dotenv
+from datetime import datetime, timezone
 
+from dotenv import load_dotenv
 from openai import AsyncOpenAI, OpenAI
 
+from embedding import compute_knn_scores, get_embeddings_in_batches
 from fetcher import fetch_papers, fetch_papers_for_date
 from llm import enhance_papers_concurrently, generate_daily_topics
 from renderer import render_daily_markdown, render_readme
-from embedding import get_embeddings_in_batches, compute_knn_scores
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -228,7 +228,7 @@ async def main():
         os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
     ).split(",")
     categories = [c.strip() for c in categories]
-    model_name = os.getenv("MODEL_NAME") or "deepseek-chat"
+    model_name = os.getenv("MODEL_NAME") or "gemini-3.5-flash-lite"
     language = os.getenv("LANGUAGE") or "中文"
     output_root = os.getenv("OUTPUT_ROOT") or "dist"
     data_dir = os.path.join(output_root, "data")
@@ -237,7 +237,9 @@ async def main():
 
     os.makedirs(data_dir, exist_ok=True)
 
-    today_str = args.date if args.date else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today_str = (
+        args.date if args.date else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    )
     fetched_jsonl_path = os.path.join(data_dir, f"{today_str}_fetched.jsonl")
     jsonl_path = os.path.join(data_dir, f"{today_str}.jsonl")
     md_path = os.path.join(data_dir, f"{today_str}.md")
