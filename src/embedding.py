@@ -1,5 +1,7 @@
-import math
 import logging
+import math
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +43,30 @@ def compute_knn_scores(
     paper_embs: list[list[float]], zotero_embs: list[list[float]], top_k: int = 5
 ) -> list[float]:
     """
-    Computes kNN similarity scores for paper embeddings against Zotero embeddings.
+    Computes kNN similarity scores for paper embeddings against Zotero embeddings using NumPy vectorization.
     """
-    scores = []
-    for emb in paper_embs:
-        sims = [cosine_similarity(emb, z_emb) for z_emb in zotero_embs]
-        sims.sort(reverse=True)
-        top = sims[:top_k]
-        avg_score = sum(top) / len(top) if top else 0.0
-        scores.append(avg_score)
-    return scores
+    if not paper_embs:
+        return []
+    if not zotero_embs:
+        return [0.0] * len(paper_embs)
+
+    p_mat = np.asarray(paper_embs, dtype=np.float32)
+    z_mat = np.asarray(zotero_embs, dtype=np.float32)
+
+    p_norm = np.linalg.norm(p_mat, axis=1, keepdims=True)
+    z_norm = np.linalg.norm(z_mat, axis=1, keepdims=True)
+
+    p_norm = np.where(p_norm == 0, 1.0, p_norm)
+    z_norm = np.where(z_norm == 0, 1.0, z_norm)
+
+    p_normalized = p_mat / p_norm
+    z_normalized = z_mat / z_norm
+
+    sim_matrix = np.matmul(p_normalized, z_normalized.T)
+
+    k = min(top_k, sim_matrix.shape[1])
+    if k <= 0:
+        return [0.0] * len(paper_embs)
+
+    top_k_sims = np.partition(sim_matrix, -k, axis=1)[:, -k:]
+    return np.mean(top_k_sims, axis=1).astype(float).tolist()
