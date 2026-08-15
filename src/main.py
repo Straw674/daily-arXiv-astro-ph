@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI, OpenAI
 
 from embedding import compute_knn_scores, get_embeddings_in_batches
-from fetcher import fetch_papers, fetch_papers_for_date
+from fetcher import clean_arxiv_id, fetch_papers, fetch_papers_for_date
 from llm import enhance_papers_concurrently, generate_daily_topics
 from renderer import render_daily_markdown, render_readme
 
@@ -42,12 +42,13 @@ def run_step1(categories, fetched_jsonl_path, force_regen, target_date=None):
 
     with open(fetched_jsonl_path, "w", encoding="utf-8") as f:
         for p in papers:
+            paper_id = clean_arxiv_id(p.get_short_id())
             p_dict = {
-                "id": p.get_short_id(),
+                "id": paper_id,
                 "title": p.title,
                 "summary": p.summary,
-                "url": p.entry_id,
-                "pdf_url": p.pdf_url,
+                "url": f"https://arxiv.org/abs/{paper_id}",
+                "pdf_url": f"https://arxiv.org/pdf/{paper_id}",
                 "categories": p.categories,
                 "primary_category": getattr(p, "primary_category", None),
                 "updated_date": p.updated.date().isoformat() if p.updated else None,

@@ -15,7 +15,7 @@ from openai import AsyncOpenAI, OpenAI
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from embedding import compute_knn_scores, get_embeddings_in_batches
-from fetcher import fetch_papers, fetch_papers_for_date
+from fetcher import clean_arxiv_id, fetch_papers, fetch_papers_for_date
 from llm import _sanitize_json_string, get_system_prompt
 
 logging.basicConfig(
@@ -443,13 +443,14 @@ async def main():
             else fetch_papers(CATEGORIES)
         )
         for p in fetched_raw:
+            paper_id = clean_arxiv_id(p.get_short_id())
             papers.append(
                 {
-                    "id": p.get_short_id(),
+                    "id": paper_id,
                     "title": p.title,
                     "summary": p.summary,
-                    "url": p.entry_id,
-                    "pdf_url": p.pdf_url,
+                    "url": f"https://arxiv.org/abs/{paper_id}",
+                    "pdf_url": f"https://arxiv.org/pdf/{paper_id}",
                     "categories": p.categories,
                     "primary_category": getattr(p, "primary_category", None),
                     "updated_date": (
