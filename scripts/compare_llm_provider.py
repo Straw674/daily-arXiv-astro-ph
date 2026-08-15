@@ -45,12 +45,14 @@ DEFAULT_TOPICS: List[str] = [
 USD_TO_CNY_RATE: float = 6.74
 
 # Centralized Model Configurations and Pricing (USD per 1M tokens)
+# Note: For Chinese domestic models priced natively in CNY (e.g. Qwen),
+# we divide by USD_TO_CNY_RATE so that cost_cny is exact and consistent.
 MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
     "gemini-3.5-flash-lite": {
         "model_name": "gemini-3.5-flash-lite",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "api_key_env": ("GEMINI_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY"),
-        "pricing": {"input": 0.30, "output": 2.50},
+        "pricing": {"input": 0.30, "output": 2.50},  # $0.30 in / $2.50 out per 1M
         "extra_kwargs": {"reasoning_effort": "high"},
         "enabled": True,
     },
@@ -58,15 +60,45 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         "model_name": "gemini-3.7-flash",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "api_key_env": ("GEMINI_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY"),
-        "pricing": {"input": 0.75, "output": 3.75},
+        "pricing": {
+            "input": 0.75,
+            "output": 3.75,
+        },  # $0.75 in / $3.75 out per 1M (promo rate)
         "extra_kwargs": {"reasoning_effort": "high"},
+        "enabled": True,
+    },
+    "deepseek-v4-flash": {
+        "model_name": "deepseek-v4-flash",
+        "base_url": "https://api.deepseek.com",
+        "api_key_env": ("DEEPSEEK_API_KEY",),
+        # Valley / Off-peak (Cache Miss): $0.22 in / $0.66 out per 1M tokens
+        # Peak: $0.44 in / $1.32 out per 1M tokens
+        # Off-peak Cache Hit: $0.007 in per 1M tokens
+        # Abstract summarization prompt has >80% unique content, so Cache Miss pricing is used.
+        "pricing": {"input": 0.22, "output": 0.66},
+        "extra_kwargs": {},
+        "enabled": True,
+    },
+    "deepseek-v4-pro": {
+        "model_name": "deepseek-v4-pro",
+        "base_url": "https://api.deepseek.com",
+        "api_key_env": ("DEEPSEEK_API_KEY",),
+        # Valley / Off-peak (Cache Miss): $0.66 in / $1.98 out per 1M tokens
+        # Peak: $1.32 in / $3.96 out per 1M tokens
+        # Off-peak Cache Hit: $0.022 in per 1M tokens
+        "pricing": {"input": 0.66, "output": 1.98},
+        "extra_kwargs": {},
         "enabled": True,
     },
     "qwen-plus": {
         "model_name": "qwen-plus",
         "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
         "api_key_env": ("DASHSCOPE_API_KEY", "QWEN_API_KEY", "EMBEDDING_API_KEY"),
-        "pricing": {"input": 0.8 / 7.15, "output": 2.0 / 7.15},
+        # Native CNY: ¥0.80 in / ¥2.00 out per 1M tokens
+        "pricing": {
+            "input": 0.80 / USD_TO_CNY_RATE,
+            "output": 2.00 / USD_TO_CNY_RATE,
+        },
         "extra_kwargs": {},
         "enabled": True,
     },
@@ -74,7 +106,11 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         "model_name": "qwen3.6-27b",
         "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
         "api_key_env": ("DASHSCOPE_API_KEY", "QWEN_API_KEY", "EMBEDDING_API_KEY"),
-        "pricing": {"input": 3.0 / 7.15, "output": 18.0 / 7.15},
+        # Native CNY: ¥3.00 in / ¥18.00 out per 1M tokens
+        "pricing": {
+            "input": 3.00 / USD_TO_CNY_RATE,
+            "output": 18.00 / USD_TO_CNY_RATE,
+        },
         "extra_kwargs": {"extra_body": {"enable_thinking": True}},
         "enabled": True,
     },
@@ -98,9 +134,18 @@ def calculate_usage_and_cost(
         else 0
     )
 
-    # In Gemini's OpenAI-compatible endpoint, thinking tokens are included in total_tokens but not completion_tokens
-    thinking_tokens = max(0, total_tokens - prompt_tokens - completion_tokens)
-    billed_output_tokens = completion_tokens + thinking_tokens
+    # Thinking token handling across different providers:
+    # 1. Gemini OpenAI-compatible API: total_tokens includes thinking tokens, but completion_tokens does not.
+    # 2. OpenAI / DeepSeek: completion_tokens often already includes reasoning_tokens.
+    completion_details = getattr(usage, "completion_tokens_details", None)
+    reasoning_tokens = (
+        getattr(completion_details, "reasoning_tokens", 0) if completion_details else 0
+    )
+    unaccounted_tokens = max(0, total_tokens - prompt_tokens - completion_tokens)
+    thinking_tokens = max(reasoning_tokens, unaccounted_tokens)
+
+    # Billed output tokens = completion_tokens + any extra thinking tokens not counted in completion_tokens
+    billed_output_tokens = completion_tokens + unaccounted_tokens
 
     cost_usd = (prompt_tokens * pricing.get("input", 0.0) / 1e6) + (
         billed_output_tokens * pricing.get("output", 0.0) / 1e6
