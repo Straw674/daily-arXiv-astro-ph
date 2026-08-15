@@ -84,11 +84,20 @@ async def call_model_summary(
         usage = response.usage
         prompt_tokens = usage.prompt_tokens if usage else 0
         completion_tokens = usage.completion_tokens if usage else 0
+        total_tokens = (
+            getattr(usage, "total_tokens", prompt_tokens + completion_tokens)
+            if usage
+            else 0
+        )
 
-        # Calculate cost
+        # In Gemini's OpenAI-compatible endpoint, thinking tokens are included in total_tokens but not completion_tokens
+        thinking_tokens = max(0, total_tokens - prompt_tokens - completion_tokens)
+        billed_output_tokens = completion_tokens + thinking_tokens
+
+        # Calculate cost (all output tokens including thinking are billed at output rate)
         pricing = MODEL_PRICING.get(model_name, {"input": 0.0, "output": 0.0})
         cost_usd = (prompt_tokens * pricing["input"] / 1e6) + (
-            completion_tokens * pricing["output"] / 1e6
+            billed_output_tokens * pricing["output"] / 1e6
         )
         cost_cny = cost_usd * 7.15
 
@@ -97,6 +106,8 @@ async def call_model_summary(
             "elapsed_seconds": round(elapsed, 2),
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
+            "thinking_tokens": thinking_tokens,
+            "billed_output_tokens": billed_output_tokens,
             "cost_usd": round(cost_usd, 6),
             "cost_cny": round(cost_cny, 4),
             "background_knowledge": parsed.get("background_knowledge", ""),
@@ -186,9 +197,15 @@ def save_markdown_report(
             if "cost_usd" in res:
                 cost_str = f" | **Cost**: ${res['cost_usd']:.6f} (¥{res.get('cost_cny', 0.0):.4f})"
 
+            token_details = (
+                f"Input {res['prompt_tokens']}, Output {res['completion_tokens']}"
+            )
+            if res.get("thinking_tokens", 0) > 0:
+                token_details += f" (+ {res['thinking_tokens']} thinking tokens, Total Output Billed {res.get('billed_output_tokens')})"
+
             lines.append(
                 f"- **耗时**: {res['elapsed_seconds']}s | "
-                f"**Tokens**: Input {res['prompt_tokens']}, Output {res['completion_tokens']}{cost_str}\n"
+                f"**Tokens**: {token_details}{cost_str}\n"
             )
             lines.append("#### 🔭 领域背景与前置科普 (`background_knowledge`)")
             lines.append(f"{res['background_knowledge']}\n")
