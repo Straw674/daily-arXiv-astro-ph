@@ -230,7 +230,7 @@ async def main():
         os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
     ).split(",")
     categories = [c.strip() for c in categories]
-    model_name = os.getenv("MODEL_NAME") or "gemini-3.7-flash"
+    model_name = os.getenv("MODEL_NAME") or "gemini-3.5-flash-lite"
     language = os.getenv("LANGUAGE") or "中文"
     output_root = os.getenv("OUTPUT_ROOT") or "dist"
     data_dir = os.path.join(output_root, "data")
