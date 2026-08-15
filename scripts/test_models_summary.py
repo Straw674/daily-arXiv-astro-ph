@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from embedding import compute_knn_scores, get_embeddings_in_batches
 from fetcher import fetch_papers, fetch_papers_for_date
+from llm import _sanitize_json_string
 
 logging.basicConfig(
     level=logging.INFO,
@@ -82,7 +83,7 @@ async def call_model_summary(
         )
         elapsed = time.time() - start_time
         content = response.choices[0].message.content
-        parsed = json.loads(content)
+        parsed = json.loads(_sanitize_json_string(content))
 
         usage = response.usage
         prompt_tokens = usage.prompt_tokens if usage else 0

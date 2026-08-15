@@ -16,7 +16,11 @@ _VALID_JSON_ESCAPES = frozenset('"\\bfnrtu/')
 
 
 def _sanitize_json_string(raw: str) -> str:
-    """Fix invalid JSON escape sequences by removing the backslash."""
+    """Strip markdown code fences and fix invalid JSON escape sequences."""
+    s = raw.strip()
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", s)
+    if match:
+        s = match.group(1).strip()
 
     def _replace_invalid_escape(m: re.Match) -> str:
         char = m.group(1)
@@ -24,7 +28,7 @@ def _sanitize_json_string(raw: str) -> str:
             return m.group(0)  # keep valid escapes
         return char  # drop the backslash
 
-    return re.sub(r"\\(.)", _replace_invalid_escape, raw)
+    return re.sub(r"\\(.)", _replace_invalid_escape, s)
 
 
 class PaperSummary(BaseModel):
