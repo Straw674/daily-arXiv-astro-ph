@@ -71,7 +71,7 @@ async def enhance_paper(
     language: str,
     topics: list[str],
 ) -> Dict[str, Any]:
-    MAX_RETRIES = 3
+    MAX_RETRIES = 5
     extra_kwargs: Dict[str, Any] = {}
     reasoning_effort = os.getenv("LLM_REASONING_EFFORT")
     if reasoning_effort:
@@ -120,8 +120,8 @@ async def enhance_paper(
                     logger.warning(
                         f"Error processing {paper['id']} on attempt {attempt + 1}: {e}. Retrying..."
                     )
-                    # Add a small delay between retries
-                    await asyncio.sleep(2**attempt)
+                    # Exponential backoff with ceiling
+                    await asyncio.sleep(min(30, (2**attempt) * 2))
                     continue
 
                 logger.error(
@@ -184,7 +184,7 @@ async def generate_daily_topics(
         f"Paper Titles:\n{titles_str}"
     )
 
-    MAX_RETRIES = 3
+    MAX_RETRIES = 5
     extra_kwargs: Dict[str, Any] = {}
     reasoning_effort = os.getenv("LLM_REASONING_EFFORT")
     if reasoning_effort:
@@ -217,7 +217,7 @@ async def generate_daily_topics(
                 logger.warning(
                     f"Failed to generate daily topics on attempt {attempt + 1}: {e}. Retrying..."
                 )
-                await asyncio.sleep(2**attempt)
+                await asyncio.sleep(min(30, (2**attempt) * 2))
                 continue
 
             logger.error(

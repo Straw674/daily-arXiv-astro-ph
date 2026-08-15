@@ -69,13 +69,13 @@ If you want to fork this repository to track your own interests, you will need t
 
    | Name                   | Example                                 | Description                                          |
    | ---------------------- | --------------------------------------- | ---------------------------------------------------- |
-   | `MODEL_NAME`           | `gemini-3.5-flash-lite`                 | Model name for LLM summarization                     |
+   | `MODEL_NAME`           | `gemini-3.7-flash`                      | Model name for LLM summarization                     |
    | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                        |
    | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track            |
    | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics   |
-   | `LANGUAGE`             | `Chinese`                               | Language for the generated summaries                 |
-   | `LLM_REASONING_EFFORT` | (optional)                              | Reasoning effort for the LLM (e.g., medium, high)   |
-   | `CONCURRENCY_LIMIT`    | `100`                                   | Number of LLM calls to run in parallel               |
+   | `LANGUAGE`             | `中文`                                  | Language for the generated summaries                 |
+   | `LLM_REASONING_EFFORT` | `high`                                  | Reasoning effort for the LLM (e.g., high, medium, low) |
+   | `CONCURRENCY_LIMIT`    | `1`                                     | Number of LLM calls to run in parallel (1~2 recommended for Gemini Flash) |
    | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN relevance calculation |
    | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push        |
    | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push       |

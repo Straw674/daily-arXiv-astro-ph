@@ -78,11 +78,13 @@ async def run_step2(fetched_jsonl_path, jsonl_path, model_name, language, force_
         return
 
     logger.info("Generating topics...")
-    client = AsyncOpenAI()
+    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY")
+    base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("GEMINI_BASE_URL")
+    client = AsyncOpenAI(api_key=api_key, base_url=base_url)
     topics = await generate_daily_topics(client, papers, model_name)
 
     logger.info("Enhancing papers with LLM...")
-    concurrency_limit = int(os.getenv("CONCURRENCY_LIMIT") or 5)
+    concurrency_limit = int(os.getenv("CONCURRENCY_LIMIT") or 1)
 
     enhanced_data = await enhance_papers_concurrently(
         client, papers, model_name, language, topics, concurrency=concurrency_limit
@@ -228,7 +230,7 @@ async def main():
         os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
     ).split(",")
     categories = [c.strip() for c in categories]
-    model_name = os.getenv("MODEL_NAME") or "gemini-3.5-flash-lite"
+    model_name = os.getenv("MODEL_NAME") or "gemini-3.7-flash"
     language = os.getenv("LANGUAGE") or "中文"
     output_root = os.getenv("OUTPUT_ROOT") or "dist"
     data_dir = os.path.join(output_root, "data")
