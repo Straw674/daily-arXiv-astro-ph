@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # Top-Level Constants & Evaluation Configuration
 # ==============================================================================
 
-DATE: str | None = None  # None for today UTC, or specific date "YYYY-MM-DD"
+DATE: str | None = "2026-08-03"  # None for today UTC, or specific date "YYYY-MM-DD"
 TOP_N: int = 1
 LANGUAGE: str = "中文"
 CATEGORIES: List[str] = ["astro-ph.GA", "astro-ph.CO", "astro-ph.IM"]
@@ -162,7 +162,7 @@ def calculate_usage_and_cost(
     }
 
 
-def create_model_client(model_config: Dict[str, Any]) -> AsyncOpenAI | None:
+def create_model_client(model_config: Dict[str, Any]) -> AsyncOpenAI:
     """Instantiate an AsyncOpenAI client based on configured environment variables."""
     api_key_env = model_config.get("api_key_env")
     if isinstance(api_key_env, (list, tuple)):
@@ -173,10 +173,11 @@ def create_model_client(model_config: Dict[str, Any]) -> AsyncOpenAI | None:
         api_key = None
 
     if not api_key:
-        logger.warning(
-            f"API key not found for {model_config['model_name']} (checked {api_key_env}). Skipping."
+        raise ValueError(
+            f"Missing API key for enabled model '{model_config['model_name']}'. "
+            f"Checked environment variables: {api_key_env}. "
+            f"Please set your API key in .env or disable the model in MODELS_CONFIG."
         )
-        return None
 
     return AsyncOpenAI(api_key=api_key, base_url=model_config.get("base_url"))
 
@@ -186,6 +187,7 @@ async def call_model_summary(
     model_config: Dict[str, Any],
     paper: Dict[str, Any],
     system_prompt: str,
+    timeout: float = 120.0,
 ) -> Dict[str, Any]:
     """Calls a single model with summarization prompt and returns parsed results."""
     model_name = model_config["model_name"]
@@ -193,6 +195,7 @@ async def call_model_summary(
     pricing = model_config.get("pricing", {"input": 0.0, "output": 0.0})
 
     prompt = f"Title: {paper.get('title', '')}\n\nAbstract: {paper.get('summary', '')}"
+    logger.info(f"  -> [{model_name}] Request sent...")
     start_time = time.time()
     try:
         response = await client.chat.completions.create(
@@ -203,26 +206,55 @@ async def call_model_summary(
             ],
             response_format={"type": "json_object"},
             stream=False,
+            timeout=timeout,
             **extra_kwargs,
         )
         elapsed = time.time() - start_time
         content = response.choices[0].message.content or ""
         parsed = json.loads(_sanitize_json_string(content))
+        if isinstance(parsed, str):
+            try:
+                parsed = json.loads(_sanitize_json_string(parsed))
+            except Exception:
+                pass
+        if not isinstance(parsed, dict):
+            parsed = {}
+
+        def _format_field(val: Any) -> str:
+            if isinstance(val, list):
+                return "\n\n".join(str(x) for x in val)
+            return str(val) if val is not None else ""
 
         cost_info = calculate_usage_and_cost(response.usage, pricing)
+        logger.info(f"  -> [{model_name}] Finished in {elapsed:.1f}s")
+
+        topic_val = parsed.get("topic") or parsed.get("subfield") or ""
+        bg_val = (
+            parsed.get("background_knowledge")
+            or parsed.get("background")
+            or parsed.get("background_intro")
+            or ""
+        )
+        contrib_val = (
+            parsed.get("contribution")
+            or parsed.get("core_contribution")
+            or parsed.get("findings")
+            or parsed.get("summary")
+            or ""
+        )
 
         return {
             "success": True,
             "elapsed_seconds": round(elapsed, 2),
             **cost_info,
-            "topic": parsed.get("topic", ""),
-            "background_knowledge": parsed.get("background_knowledge", ""),
-            "contribution": parsed.get("contribution", ""),
+            "topic": _format_field(topic_val),
+            "background_knowledge": _format_field(bg_val),
+            "contribution": _format_field(contrib_val),
             "raw_response": content,
         }
     except Exception as e:
         elapsed = time.time() - start_time
-        logger.error(f"Error invoking {model_name} for paper {paper.get('id')}: {e}")
+        logger.error(f"  -> [{model_name}] Failed after {elapsed:.1f}s: {e}")
         return {
             "success": False,
             "elapsed_seconds": round(elapsed, 2),
@@ -237,11 +269,16 @@ async def call_model_summary(
 
 def load_zotero_embs(zotero_path: str) -> List[List[float]]:
     if not os.path.exists(zotero_path):
-        logger.warning(f"Zotero embeddings not found at {zotero_path}")
-        return []
+        raise FileNotFoundError(
+            f"Zotero embeddings not found at '{zotero_path}'. "
+            f"Please verify ZOTERO_EMB_PATH or generate embeddings first."
+        )
     with open(zotero_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    return [p["embedding"] for p in data.get("papers", []) if "embedding" in p]
+    embs = [p["embedding"] for p in data.get("papers", []) if "embedding" in p]
+    if not embs:
+        raise ValueError(f"No valid embeddings found in '{zotero_path}'.")
+    return embs
 
 
 def get_top_papers(
@@ -250,12 +287,23 @@ def get_top_papers(
     top_n: int = 1,
 ) -> List[Dict[str, Any]]:
     if not zotero_embs:
-        logger.warning("No Zotero embeddings found, taking the first N papers.")
-        return papers[:top_n]
+        raise ValueError(
+            "Zotero embeddings are empty. Cannot calculate paper similarities."
+        )
 
-    emb_api_key = os.getenv("EMBEDDING_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
+    emb_api_key = (
+        os.getenv("DASHSCOPE_API_KEY")
+        or os.getenv("EMBEDDING_API_KEY")
+        or os.getenv("QWEN_API_KEY")
+    )
+    if not emb_api_key:
+        raise ValueError(
+            "Missing DASHSCOPE_API_KEY (or EMBEDDING_API_KEY) in environment for computing paper embeddings."
+        )
+
     emb_base_url = (
-        os.getenv("EMBEDDING_BASE_URL")
+        os.getenv("DASHSCOPE_BASE_URL")
+        or os.getenv("EMBEDDING_BASE_URL")
         or "https://dashscope.aliyuncs.com/compatible-mode/v1"
     )
     emb_model = os.getenv("EMBEDDING_MODEL_NAME") or "text-embedding-v4"
@@ -411,8 +459,9 @@ async def main():
             )
 
     if not papers:
-        logger.error("No papers found to evaluate.")
-        return
+        raise RuntimeError(
+            f"No papers found to evaluate for date {today_str} and categories {CATEGORIES}."
+        )
 
     logger.info(f"Loaded {len(papers)} papers in total.")
 
@@ -432,12 +481,10 @@ async def main():
         if not config.get("enabled", True):
             continue
         client = create_model_client(config)
-        if client:
-            active_models.append((key, config, client))
+        active_models.append((key, config, client))
 
     if not active_models:
-        logger.error("No active model clients could be initialized.")
-        return
+        raise RuntimeError("No active models enabled in MODELS_CONFIG.")
 
     system_prompt = get_system_prompt(LANGUAGE, DEFAULT_TOPICS)
 

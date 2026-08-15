@@ -119,9 +119,10 @@ def score_papers_with_zotero(enhanced_data, zotero_embs):
     logger.info(f"Computing embeddings for arXiv papers with {emb_model}...")
 
     client = OpenAI(
-        api_key=os.getenv("EMBEDDING_API_KEY"),
+        api_key=os.getenv("DASHSCOPE_API_KEY") or os.getenv("EMBEDDING_API_KEY"),
         base_url=(
-            os.getenv("EMBEDDING_BASE_URL")
+            os.getenv("DASHSCOPE_BASE_URL")
+            or os.getenv("EMBEDDING_BASE_URL")
             or "https://dashscope.aliyuncs.com/compatible-mode/v1"
         ),
     )

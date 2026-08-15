@@ -1,10 +1,10 @@
-import os
+import argparse
 import json
 import logging
-import argparse
-from dotenv import load_dotenv
+import os
 
 import bibtexparser
+from dotenv import load_dotenv
 from openai import OpenAI
 
 from embedding import get_embeddings_in_batches
@@ -61,15 +61,18 @@ def main():
         logger.warning("No valid entries with title/abstract found.")
         return
 
-    api_key = os.getenv("EMBEDDING_API_KEY")
+    api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("EMBEDDING_API_KEY")
     if not api_key:
-        logger.error("EMBEDDING_API_KEY environment variable is not set.")
+        logger.error(
+            "DASHSCOPE_API_KEY (or EMBEDDING_API_KEY) environment variable is not set."
+        )
         return
 
     client = OpenAI(
         api_key=api_key,
         base_url=(
-            os.getenv("EMBEDDING_BASE_URL")
+            os.getenv("DASHSCOPE_BASE_URL")
+            or os.getenv("EMBEDDING_BASE_URL")
             or "https://dashscope.aliyuncs.com/compatible-mode/v1"
         ),
     )
