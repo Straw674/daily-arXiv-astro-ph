@@ -42,7 +42,7 @@ DEFAULT_TOPICS: List[str] = [
     "Others",
 ]
 
-USD_TO_CNY_RATE: float = 7.15
+USD_TO_CNY_RATE: float = 6.74
 
 # Centralized Model Configurations and Pricing (USD per 1M tokens)
 MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
