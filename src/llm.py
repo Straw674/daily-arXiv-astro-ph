@@ -10,23 +10,29 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-# JSON only allows these escape sequences: \" \\ \/ \b \f \n \r \t \uXXXX
-# LLMs sometimes produce invalid ones like \_ (from LaTeX habits).
-_VALID_JSON_ESCAPES = frozenset('"\\bfnrtu/')
-
 
 def _sanitize_json_string(raw: str) -> str:
-    """Strip markdown code fences and fix invalid JSON escape sequences."""
+    """Strip markdown code fences and fix unescaped LaTeX/control escapes in JSON strings."""
     s = raw.strip()
     match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", s)
     if match:
         s = match.group(1).strip()
 
     def _replace_invalid_escape(m: re.Match) -> str:
+        rest = s[m.end() : m.end() + 6]
         char = m.group(1)
-        if char in _VALID_JSON_ESCAPES:
-            return m.group(0)  # keep valid escapes
-        return char  # drop the backslash
+        # Keep valid standard JSON escapes
+        if char in ('"', "\\", "/"):
+            return m.group(0)
+        # Keep unicode escape \uXXXX
+        if char == "u" and re.match(r"^[0-9a-fA-F]{4}", rest):
+            return m.group(0)
+        # Keep standard newline/carriage-return/tab ONLY when not followed by alpha (e.g. \n-, \n\n, \t" etc.)
+        if char in ("n", "r", "t") and (not rest or not rest[0].isalpha()):
+            return m.group(0)
+        # Otherwise it's a LaTeX command (\text, \theta, \rm, \beta, \frac, etc.) or LaTeX escape (\_, \%, etc.)
+        # Escape the backslash so json.loads produces a literal backslash
+        return r"\\" + char
 
     return re.sub(r"\\(.)", _replace_invalid_escape, s)
 
@@ -54,7 +60,10 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
         f"排版、Markdown 与行文规范（特别是针对中文输出）：\n"
         f"1. 中英文及数字空格：中文字符与西文字符（英文单词、字母）、阿拉伯数字之间必须保留一个半角空格（例如：“利用 JWST 观测”、“在 2026 年”）；中文字符与全角标点符号之间不加空格，全角括号内部两端不留多余空格。\n"
         f"2. 标点符号规范：中文文本中必须使用全角标点符号（，。！？：；“”‘’（）等），严禁在中文语境中混用半角英文标点；引用使用中文全角引号“”，省略号使用……，破折号使用——。\n"
-        f"3. 数学公式与物理量（LaTeX）：所有物理变量、数学符号、上下标、数值范围及天体物理单位（如红移 $z$、恒星质量 $M_\\odot$、$\\Lambda\\text{{CDM}}$ 宇宙学模型、谱指数 $n_s$、$10^5$ 等）必须使用标准的 LaTeX 行内公式 `$ ... $` 渲染，严禁裸写 `z>6`、`10^5`、`n_s`。\n"
+        f"3. 数学公式与物理量（LaTeX 规范）：\n"
+        f"   - 适用范围：仅对含有希腊字母、数学符号、上下标、物理变量及复合表达式（如红移 $z$、恒星质量 $M_\\odot$、$\\Lambda\\text{{CDM}}$ 宇宙学模型、谱指数 $n_s$、$10^5\\ M_\\odot$ 等）使用标准的行内公式 $...$；\n"
+        f"   - 严禁滥用：普通的纯数字、年份、样本数量、简单百分比及纯英文缩写（如 31 个源、2026 年、30%、AGN、JWST、3D 等）直接写为纯文本，严禁套用 LaTeX 公式（严禁写成 $31$、$30\\%$、$\\text{{AGN}}$）；\n"
+        f"   - 排版与边界：行内公式前后与中文字符或全角标点之间必须保留一个半角空格（例如“红移 $z > 3$ 的样本”）；公式内部首尾紧贴美元符号（如 $z > 3$ 正确，$ z > 3 $ 错误）；严禁在公式外层添加 Markdown 反引号；\n"
         f"4. Markdown 结构与强调：\n"
         f"   - 严禁在字段内容内部输出任何 Markdown 标题（如 `#`、`##`、`###` 等）。\n"
         f"   - 若需列举多个要点，请使用标准的 `- ` 无序列表。\n"
