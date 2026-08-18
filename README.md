@@ -48,7 +48,7 @@ The output is provided as Markdown files (located in the `data` branch). Each fi
   - **Background**: Explains the context, the problem domain, and why the research is necessary.
   - **Summary**: Details the specific methods, results, and contributions of the paper.
 
-An example output can be found at [`2026-08-17.md`](2026-08-17.md) in the repository root.
+An example output can be found at [`2026-08-18.md`](2026-08-18.md) in the repository root.
 
 ## How to Fork and Use
 
