@@ -102,6 +102,18 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         "extra_kwargs": {},
         "enabled": True,
     },
+    "qwen3.8-flash": {
+        "model_name": "qwen3.8-flash",
+        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "api_key_env": ("DASHSCOPE_API_KEY", "QWEN_API_KEY", "EMBEDDING_API_KEY"),
+        # Native CNY: ¥0.15 in / ¥0.30 out per 1M tokens
+        "pricing": {
+            "input": 0.15 / USD_TO_CNY_RATE,
+            "output": 0.30 / USD_TO_CNY_RATE,
+        },
+        "extra_kwargs": {},
+        "enabled": True,
+    },
     "qwen3.6-27b": {
         "model_name": "qwen3.6-27b",
         "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",

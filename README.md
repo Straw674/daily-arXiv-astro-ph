@@ -54,28 +54,31 @@ An example output can be found at [`2026-08-18.md`](2026-08-18.md) in the reposi
 
 If you want to fork this repository to track your own interests, you will need to complete the following setup steps:
 
-1. **GitHub Secrets & Variables**: In your forked repository, go to `Settings > Secrets and variables > Actions` and configure the following (or search `os.getenv` in the codebase for a complete list). You will need two sets of OpenAI-compatible API parameters — one for LLM summarization (e.g., Google Gemini, OpenAI, DeepSeek, or Qwen) and one for embedding.
+1. **GitHub Secrets & Variables**: In your forked repository, go to `Settings > Secrets and variables > Actions` and configure the following credentials and parameters. The pipeline supports any OpenAI-compatible LLM provider (e.g., DashScope/Qwen, Google Gemini, DeepSeek, OpenAI) for summarization, plus an embedding API.
 
    **Secrets** (sensitive credentials):
 
    | Name                 | Description                                         |
    | -------------------- | --------------------------------------------------- |
-   | `OPENAI_API_KEY`     | API key for the LLM used for summarization (e.g. Gemini API Key) |
-   | `OPENAI_BASE_URL`    | Base URL of the OpenAI-compatible summarization API (e.g., `https://generativelanguage.googleapis.com/v1beta/openai/`) |
-   | `EMBEDDING_API_KEY`  | API key for the embedding API                       |
+   | `DASHSCOPE_API_KEY`  | API key for DashScope / Qwen models                 |
+   | `GEMINI_API_KEY`     | API key for Google Gemini models                    |
+   | `DEEPSEEK_API_KEY`   | API key for DeepSeek models                         |
+   | `OPENAI_API_KEY`     | API key for OpenAI or generic fallback endpoint     |
+   | `OPENAI_BASE_URL`    | (Optional) Custom base URL for OpenAI-compatible gateway |
+   | `EMBEDDING_API_KEY`  | API key for the text embedding API (e.g. DashScope) |
    | `EMBEDDING_BASE_URL` | Base URL of the embedding API                       |
 
    **Variables** (non-sensitive configuration):
 
    | Name                   | Example                                 | Description                                          |
    | ---------------------- | --------------------------------------- | ---------------------------------------------------- |
-   | `MODEL_NAME`           | `gemini-3.5-flash-lite`                 | Model name for LLM summarization                     |
+   | `MODEL_NAME`           | `qwen3.8-flash` / `gemini-3.5-flash-lite` | Model name for LLM summarization (switchable at any time) |
    | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                        |
    | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track            |
    | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics   |
    | `LANGUAGE`             | `中文`                                  | Language for the generated summaries                 |
-   | `LLM_REASONING_EFFORT` | `high`                                  | Reasoning effort for the LLM (e.g., high, medium, low) |
-   | `CONCURRENCY_LIMIT`    | `1`                                     | Number of LLM calls to run in parallel (1~2 recommended for Gemini Flash-Lite) |
+   | `LLM_REASONING_EFFORT` | `high`                                  | (Optional) Reasoning effort for supported models     |
+   | `CONCURRENCY_LIMIT`    | `5`                                     | Number of concurrent LLM calls                      |
    | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN relevance calculation |
    | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push        |
    | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push       |

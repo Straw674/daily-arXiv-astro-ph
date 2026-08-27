@@ -65,6 +65,78 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
     )
 
 
+def create_llm_client(model_name: str | None = None) -> tuple[AsyncOpenAI, str]:
+    """Create an AsyncOpenAI client configured for the given model_name or environment settings.
+
+    Automatically resolves base_url and API key based on the model family:
+      - Qwen / DashScope (e.g. qwen3.8-flash, qwen-plus) -> DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL
+      - Google Gemini (e.g. gemini-3.5-flash-lite)        -> GEMINI_API_KEY / GEMINI_BASE_URL
+      - DeepSeek (e.g. deepseek-v4-flash)                -> DEEPSEEK_API_KEY / DEEPSEEK_BASE_URL
+      - OpenAI / Generic                                 -> OPENAI_API_KEY / OPENAI_BASE_URL
+    """
+    model = model_name or os.getenv("MODEL_NAME") or "qwen3.8-flash"
+    model_lower = model.lower()
+
+    # Generic or custom override if explicitly provided
+    custom_base_url = os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")
+    custom_api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
+
+    if custom_base_url and custom_api_key:
+        logger.info(
+            f"Using custom LLM configuration: base_url={custom_base_url}, model={model}"
+        )
+        return AsyncOpenAI(api_key=custom_api_key, base_url=custom_base_url), model
+
+    if model_lower.startswith("qwen") or "dashscope" in model_lower:
+        api_key = (
+            os.getenv("DASHSCOPE_API_KEY")
+            or os.getenv("QWEN_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+        )
+        base_url = (
+            os.getenv("DASHSCOPE_BASE_URL")
+            or os.getenv("QWEN_BASE_URL")
+            or "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+        key_source = "DASHSCOPE_API_KEY"
+    elif model_lower.startswith("gemini"):
+        api_key = (
+            os.getenv("GEMINI_API_KEY")
+            or os.getenv("GOOGLE_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+        )
+        base_url = (
+            os.getenv("GEMINI_BASE_URL")
+            or "https://generativelanguage.googleapis.com/v1beta/openai/"
+        )
+        key_source = "GEMINI_API_KEY"
+    elif model_lower.startswith("deepseek"):
+        api_key = os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY")
+        base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
+        key_source = "DEEPSEEK_API_KEY"
+    else:
+        # OpenAI or general fallback
+        api_key = (
+            os.getenv("OPENAI_API_KEY")
+            or os.getenv("DASHSCOPE_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
+            or os.getenv("DEEPSEEK_API_KEY")
+        )
+        base_url = os.getenv("OPENAI_BASE_URL") or None
+        key_source = "OPENAI_API_KEY"
+
+    if not api_key:
+        raise ValueError(
+            f"Missing API key for model '{model}'. "
+            f"Please set {key_source} (or OPENAI_API_KEY) in your environment/.env file."
+        )
+
+    logger.info(
+        f"Initialized LLM client for model '{model}' with endpoint '{base_url or 'default'}'."
+    )
+    return AsyncOpenAI(api_key=api_key, base_url=base_url), model
+
+
 async def enhance_paper(
     client: AsyncOpenAI,
     paper: dict,

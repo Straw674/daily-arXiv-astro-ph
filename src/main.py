@@ -11,7 +11,11 @@ from openai import AsyncOpenAI, OpenAI
 
 from embedding import compute_knn_scores, get_embeddings_in_batches
 from fetcher import clean_arxiv_id, fetch_papers, fetch_papers_for_date
-from llm import enhance_papers_concurrently, generate_daily_topics
+from llm import (
+    create_llm_client,
+    enhance_papers_concurrently,
+    generate_daily_topics,
+)
 from renderer import render_daily_markdown, render_readme
 
 logging.basicConfig(
@@ -78,17 +82,17 @@ async def run_step2(fetched_jsonl_path, jsonl_path, model_name, language, force_
         logger.info("No papers to process.")
         return
 
+    logger.info("Initializing LLM client...")
+    client, resolved_model = create_llm_client(model_name)
+
     logger.info("Generating topics...")
-    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY")
-    base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("GEMINI_BASE_URL")
-    client = AsyncOpenAI(api_key=api_key, base_url=base_url)
-    topics = await generate_daily_topics(client, papers, model_name)
+    topics = await generate_daily_topics(client, papers, resolved_model)
 
     logger.info("Enhancing papers with LLM...")
     concurrency_limit = int(os.getenv("CONCURRENCY_LIMIT") or 1)
 
     enhanced_data = await enhance_papers_concurrently(
-        client, papers, model_name, language, topics, concurrency=concurrency_limit
+        client, papers, resolved_model, language, topics, concurrency=concurrency_limit
     )
 
     with open(jsonl_path, "w", encoding="utf-8") as f:
@@ -232,7 +236,7 @@ async def main():
         os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
     ).split(",")
     categories = [c.strip() for c in categories]
-    model_name = os.getenv("MODEL_NAME") or "gemini-3.5-flash-lite"
+    model_name = os.getenv("MODEL_NAME") or "qwen3.8-flash"
     language = os.getenv("LANGUAGE") or "中文"
     output_root = os.getenv("OUTPUT_ROOT") or "dist"
     data_dir = os.path.join(output_root, "data")
