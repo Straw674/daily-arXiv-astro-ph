@@ -13,7 +13,6 @@ To keep the codebase clean and avoid commit conflicts from automated daily updat
 
 The GitHub Actions workflow **does not use a built-in schedule**. Instead, it is triggered externally by [cron-job.org](https://cron-job.org) via a `repository_dispatch` event sent to the GitHub API, running every weekday (Monday to Friday) at 04:43 UTC. This avoids the unreliable delays common with GitHub Actions' native cron scheduler. The workflow can also be triggered manually from the **Actions** tab using the **Run workflow** button, which exposes a `force_regen` option to re-generate data for the current day.
 
-
 ## How It Works
 
 ### Paper Relevance & Sorting
@@ -58,30 +57,30 @@ If you want to fork this repository to track your own interests, you will need t
 
    **Secrets** (sensitive credentials):
 
-   | Name                 | Description                                         |
-   | -------------------- | --------------------------------------------------- |
-   | `DASHSCOPE_API_KEY`  | API key for DashScope / Qwen models                 |
-   | `GEMINI_API_KEY`     | API key for Google Gemini models                    |
-   | `DEEPSEEK_API_KEY`   | API key for DeepSeek models                         |
-   | `OPENAI_API_KEY`     | API key for OpenAI or generic fallback endpoint     |
+   | Name                 | Description                                              |
+   | -------------------- | -------------------------------------------------------- |
+   | `DASHSCOPE_API_KEY`  | API key for DashScope / Qwen models                      |
+   | `GEMINI_API_KEY`     | API key for Google Gemini models                         |
+   | `DEEPSEEK_API_KEY`   | API key for DeepSeek models                              |
+   | `OPENAI_API_KEY`     | API key for OpenAI or generic fallback endpoint          |
    | `OPENAI_BASE_URL`    | (Optional) Custom base URL for OpenAI-compatible gateway |
-   | `EMBEDDING_API_KEY`  | API key for the text embedding API (e.g. DashScope) |
-   | `EMBEDDING_BASE_URL` | Base URL of the embedding API                       |
+   | `EMBEDDING_API_KEY`  | API key for the text embedding API (e.g. DashScope)      |
+   | `EMBEDDING_BASE_URL` | Base URL of the embedding API                            |
 
    **Variables** (non-sensitive configuration):
 
-   | Name                   | Example                                 | Description                                          |
-   | ---------------------- | --------------------------------------- | ---------------------------------------------------- |
-   | `MODEL_NAME`           | `qwen3.8-flash` / `gemini-3.5-flash-lite` | Model name for LLM summarization (switchable at any time) |
-   | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                     | Model name for text embedding                        |
-   | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM` | Comma-separated arXiv categories to track            |
-   | `CUSTOM_GROUPS`        | (skipped due to length)                 | Comma-separated list of predefined research topics   |
-   | `LANGUAGE`             | `中文`                                  | Language for the generated summaries                 |
-   | `LLM_REASONING_EFFORT` | `high`                                  | (Optional) Reasoning effort for supported models     |
-   | `CONCURRENCY_LIMIT`    | `5`                                     | Number of concurrent LLM calls                      |
-   | `KNN_TOP_K`            | `10`                                    | Number of nearest Zotero papers used for kNN relevance calculation |
-   | `NAME`                 | `qx24`                                  | Git committer name for the GitHub Action push        |
-   | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`            | Git committer email for the GitHub Action push       |
+   | Name                   | Example                                   | Description                                                        |
+   | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
+   | `MODEL_NAME`           | `qwen3.8-flash` / `gemini-3.5-flash-lite` | Model name for LLM summarization                                   |
+   | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                       | Model name for text embedding                                      |
+   | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM`   | Comma-separated arXiv categories to track                          |
+   | `CUSTOM_GROUPS`        | (skipped due to length)                   | Comma-separated list of predefined research topics                 |
+   | `LANGUAGE`             | `中文`                                    | Language for the generated summaries                               |
+   | `LLM_REASONING_EFFORT` | `high`                                    | (Optional) Reasoning effort for supported models                   |
+   | `CONCURRENCY_LIMIT`    | `5`                                       | Number of concurrent LLM calls                                     |
+   | `KNN_TOP_K`            | `10`                                      | Number of nearest Zotero papers used for kNN relevance calculation |
+   | `NAME`                 | `qx24`                                    | Git committer name for the GitHub Action push                      |
+   | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`              | Git committer email for the GitHub Action push                     |
 
 2. **Zotero Library**:
    - Export your personal Zotero library to a `.bib` file. **Make sure to configure the export to include abstracts**.
