@@ -1,9 +1,11 @@
 - This branch is automatically updated by GitHub Actions to maintain a clear separation between code and data. The pipeline is triggered externally by [cron-job.org](https://cron-job.org) via a `repository_dispatch` event every weekday (Monday to Friday) at 04:43 UTC.
 - Summaries prior to 2026-04-25 were generated using an old version of pipeline. The current pipeline has been operational since 2026-04-27.
-- The operational cost is approximately ¥2 - ¥3 per 100 papers (assuming Qwen3.8-Flash with High Reasoning Effort).
+- The operational cost is approximately $0.03 - $0.06 per 100 papers (assuming DeepSeek-Flash).
 
 ## Summaries
 
+
+- [2026-09-16](data/2026-09-16.md)
 
 - [2026-09-15](data/2026-09-15.md)
 
