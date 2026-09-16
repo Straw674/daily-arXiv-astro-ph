@@ -67,15 +67,15 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         "extra_kwargs": {"reasoning_effort": "high"},
         "enabled": True,
     },
-    "deepseek-v4-flash": {
-        "model_name": "deepseek-v4-flash",
+    "deepseek-flash": {
+        "model_name": "deepseek-flash",
         "base_url": "https://api.deepseek.com",
         "api_key_env": ("DEEPSEEK_API_KEY",),
-        # Valley / Off-peak (Cache Miss): $0.22 in / $0.66 out per 1M tokens
-        # Peak: $0.44 in / $1.32 out per 1M tokens
-        # Off-peak Cache Hit: $0.007 in per 1M tokens
+        # Valley / Off-peak (Cache Miss): $0.15 in / $0.60 out per 1M tokens
+        # Peak: $0.30 in / $1.20 out per 1M tokens
+        # Off-peak Cache Hit: $0.003 in per 1M tokens
         # Abstract summarization prompt has >80% unique content, so Cache Miss pricing is used.
-        "pricing": {"input": 0.22, "output": 0.66},
+        "pricing": {"input": 0.15, "output": 0.60},
         "extra_kwargs": {},
         "enabled": True,
     },

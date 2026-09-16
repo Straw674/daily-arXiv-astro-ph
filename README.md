@@ -71,7 +71,7 @@ If you want to fork this repository to track your own interests, you will need t
 
    | Name                   | Example                                   | Description                                                        |
    | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
-   | `MODEL_NAME`           | `qwen3.8-flash` / `gemini-3.5-flash-lite` | Model name for LLM summarization                                   |
+   | `MODEL_NAME`           | `deepseek-flash` / `gemini-3.5-flash-lite` | Model name for LLM summarization                                   |
    | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                       | Model name for text embedding                                      |
    | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM`   | Comma-separated arXiv categories to track                          |
    | `CUSTOM_GROUPS`        | (skipped due to length)                   | Comma-separated list of predefined research topics                 |

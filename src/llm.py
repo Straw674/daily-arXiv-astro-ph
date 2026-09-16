@@ -68,10 +68,10 @@ def create_llm_client(model_name: str | None = None) -> tuple[AsyncOpenAI, str]:
     Automatically resolves base_url and API key based on the model family:
       - Qwen / DashScope (e.g. qwen3.8-flash, qwen-plus) -> DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL
       - Google Gemini (e.g. gemini-3.5-flash-lite)        -> GEMINI_API_KEY / GEMINI_BASE_URL
-      - DeepSeek (e.g. deepseek-v4-flash)                -> DEEPSEEK_API_KEY / DEEPSEEK_BASE_URL
+      - DeepSeek (e.g. deepseek-flash)                   -> DEEPSEEK_API_KEY / DEEPSEEK_BASE_URL
       - OpenAI / Generic                                 -> OPENAI_API_KEY / OPENAI_BASE_URL
     """
-    model = model_name or os.getenv("MODEL_NAME") or "qwen3.8-flash"
+    model = model_name or os.getenv("MODEL_NAME") or "deepseek-flash"
     model_lower = model.lower()
 
     # Generic or custom override if explicitly provided

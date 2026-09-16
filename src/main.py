@@ -236,7 +236,7 @@ async def main():
         os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
     ).split(",")
     categories = [c.strip() for c in categories]
-    model_name = os.getenv("MODEL_NAME") or "qwen3.8-flash"
+    model_name = os.getenv("MODEL_NAME") or "deepseek-flash"
     language = os.getenv("LANGUAGE") or "中文"
     output_root = os.getenv("OUTPUT_ROOT") or "dist"
     data_dir = os.path.join(output_root, "data")
