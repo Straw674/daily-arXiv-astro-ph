@@ -56,9 +56,12 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
         f"【字段要求】\n"
         f"1. `topic`：从候选列表中选择最匹配的一个：[{topics_str}]（若无合适则选 'Others'）。\n"
         f"2. `background_knowledge`：宏观介绍该子领域的基础物理图像、研究范式或背景科普，提供充分前置知识。\n"
-        f"3. `contribution`：忠实于摘要，精炼陈述论文的核心工作与主要科学发现（多要点使用 `- ` 无序列表，适度 `**加粗**` 核心结论，严禁输出 `#` 标题）。\n\n"
-        f"【排版要求】\n"
-        f"请遵循良好的排版规范，数学公式和专业符号使用标准 LaTeX 格式（行内公式使用 $...$）。"
+        f"3. `contribution`：忠实于摘要，精炼陈述论文的核心工作与主要科学发现。\n"
+        # Optional presentation constraints, retained for future use:
+        # "Use unordered `- ` lists for multiple findings, bold key conclusions "
+        # "with `**`, and do not emit `#` headings.\n"
+        # "Use standard LaTeX for formulas and scientific symbols, "
+        # "with $...$ delimiters for inline math."
     )
 
 
