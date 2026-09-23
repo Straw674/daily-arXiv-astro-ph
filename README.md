@@ -67,12 +67,13 @@ If you want to fork this repository to track your own interests, you will need t
    | `EMBEDDING_API_KEY`  | API key for the text embedding API (e.g. DashScope)      |
    | `EMBEDDING_BASE_URL` | Base URL of the embedding API                            |
 
-   Summarization and classification use `gemini-3.1-pro-preview`. The GitHub Actions model is configured in `.github/workflows/run.yml`; local runs can override the default with `MODEL_NAME` in `.env`.
+   Configure the summarization and classification model with the GitHub Actions `MODEL_NAME` repository variable, or with `MODEL_NAME` in `.env` for local runs. If unset, the code defaults to `gemini-3.1-pro-preview`.
 
    **Variables** (non-sensitive configuration):
 
    | Name                   | Example                                   | Description                                                        |
    | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
+   | `MODEL_NAME`           | `gemini-3.1-pro-preview`                  | Model name for summarization and classification                    |
    | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                       | Model name for text embedding                                      |
    | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM`   | Comma-separated arXiv categories to track                          |
    | `CUSTOM_GROUPS`        | (skipped due to length)                   | Comma-separated list of predefined research topics                 |
