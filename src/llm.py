@@ -71,7 +71,7 @@ def create_llm_client(model_name: str | None = None) -> tuple[AsyncOpenAI, str]:
       - DeepSeek (e.g. deepseek-flash)                   -> DEEPSEEK_API_KEY / DEEPSEEK_BASE_URL
       - OpenAI / Generic                                 -> OPENAI_API_KEY / OPENAI_BASE_URL
     """
-    model = model_name or os.getenv("MODEL_NAME") or "deepseek-flash"
+    model = model_name or os.getenv("MODEL_NAME") or "gemini-3.1-pro-preview"
     model_lower = model.lower()
 
     # Generic or custom override if explicitly provided
