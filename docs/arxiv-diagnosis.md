@@ -50,6 +50,14 @@ For a local comparison, run `uv sync --locked` and then
 The same report is written to `diagnostics/`. All run configuration is defined in
 the script's immutable module-level `CONFIG`; there are no command-line options.
 
-Collect evidence before changing production retries or request shapes. Persistent
+Production retries are limited to three retries for transient HTTP statuses
+(429, 500, 502, 503, 504) and transport failures. The waits are 5, 15, and 45
+seconds unless `Retry-After` requires longer, with a 60-second per-wait budget.
+If the server requests more than 60 seconds, collection fails instead of retrying
+before the permitted time. HTTP 406 fails immediately with response diagnostics.
+The arxiv client's additional retry layer is disabled, and fetch failures propagate
+to fail the workflow instead of being reported as an empty paper list.
+
+Persistent
 endpoint rejection may require arXiv support; include UTC timestamps, request URLs,
 response details, and the fact that the client runs on GitHub-hosted runners.
