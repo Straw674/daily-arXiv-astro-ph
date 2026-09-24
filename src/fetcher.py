@@ -1,4 +1,6 @@
 import logging
+import os
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -13,11 +15,24 @@ from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
 
+CONTACT_EMAIL = os.getenv("EMAIL") or "qx24@mails.tsinghua.edu.cn"
+DEFAULT_USER_AGENT = f"daily-arxiv-astro-ph/1.0 (mailto:{CONTACT_EMAIL})"
 
-class TimeoutSession(requests.Session):
+
+class RobustSession(requests.Session):
     def request(self, *args, **kwargs):
         # Default to 30 seconds timeout if not explicitly set
         kwargs.setdefault("timeout", 30)
+        headers = requests.structures.CaseInsensitiveDict(kwargs.get("headers") or {})
+        current_ua = headers.get("User-Agent")
+        if not current_ua:
+            headers["User-Agent"] = DEFAULT_USER_AGENT
+        elif "arxiv.py" in current_ua:
+            headers["User-Agent"] = f"{current_ua} {DEFAULT_USER_AGENT}"
+        headers.setdefault(
+            "Accept", "application/atom+xml,application/xml,text/xml;q=0.9,*/*;q=0.8"
+        )
+        kwargs["headers"] = dict(headers)
         return super().request(*args, **kwargs)
 
 
@@ -59,10 +74,10 @@ class CustomRetry(Retry):
 
 
 def get_robust_session() -> requests.Session:
-    session = TimeoutSession()
+    session = RobustSession()
     retry_strategy = CustomRetry(
         total=8,
-        status_forcelist=[429, 500, 502, 503, 504],
+        status_forcelist=[406, 429, 500, 502, 503, 504],
         respect_retry_after_header=True,
     )
     adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -105,11 +120,7 @@ def _fetch_ids_from_rss(category: str) -> List[str]:
     url = f"https://rss.arxiv.org/rss/{category}"
     try:
         session = get_robust_session()
-        response = session.get(
-            url,
-            headers={"User-Agent": "Mozilla/5.0 (daily-arxiv-astro-ph)"},
-            timeout=30,
-        )
+        response = session.get(url, timeout=30)
         response.raise_for_status()
         xml_data = response.content
     except Exception as e:
@@ -162,7 +173,10 @@ def _fetch_ids_from_rss(category: str) -> List[str]:
 def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
     """Fetch the latest papers for all given categories and deduplicate."""
     unique_ids = set()
-    for cat in categories:
+    for i, cat in enumerate(categories):
+        if i > 0:
+            logger.info("Sleeping 3s between RSS category requests...")
+            time.sleep(3.0)
         logger.info(f"Fetching arXiv IDs via RSS for category: {cat}")
         cat_ids = _fetch_ids_from_rss(cat)
         unique_ids.update(cat_ids)
@@ -170,6 +184,9 @@ def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
     if not unique_ids:
         logger.info("No new papers found across any categories.")
         return []
+
+    logger.info("Sleeping 3s before querying arXiv API...")
+    time.sleep(3.0)
 
     id_list = list(unique_ids)
     logger.info(
@@ -193,10 +210,13 @@ def fetch_papers_for_date(
         return []
 
     unique_ids = set()
-    for cat in categories:
+    for i, cat in enumerate(categories):
+        if i > 0:
+            logger.info("Sleeping 3s between category scrapes...")
+            time.sleep(3.0)
         logger.info(f"Scraping pastweek page for {cat} on {formatted_date}")
         url = f"https://arxiv.org/list/{cat}/pastweek?show=2000"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": DEFAULT_USER_AGENT})
         try:
             with urllib.request.urlopen(req) as response:
                 html = response.read().decode("utf-8")
@@ -230,6 +250,8 @@ def fetch_papers_for_date(
         logger.info(f"No papers found on pastweek page for date {target_date_str}.")
         return []
 
+    logger.info("Sleeping 3s before querying arXiv API...")
+    time.sleep(3.0)
     return fetch_papers_by_ids(list(unique_ids))
 
 
