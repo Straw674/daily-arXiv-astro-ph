@@ -78,6 +78,7 @@ jobs:
           KNN_TOP_K: ${{ vars.KNN_TOP_K }}
           ZOTERO_EMB_PATH: ${{ vars.ZOTERO_EMB_PATH }}
           ZOTERO_BIB_PATH: ${{ vars.ZOTERO_BIB_PATH }}
+          EMAIL: ${{ vars.EMAIL }}
           OUTPUT_ROOT: "dist"
           FORCE_REGEN: ${{ github.event.inputs.force_regen || 'false' }}
           TARGET_DATE: ${{ github.event.inputs.target_date || '' }}

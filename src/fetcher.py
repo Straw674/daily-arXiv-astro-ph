@@ -1,4 +1,6 @@
 import logging
+import os
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -13,57 +15,85 @@ from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
 
+CONTACT_EMAIL = os.getenv("EMAIL") or "qx24@mails.tsinghua.edu.cn"
+DEFAULT_USER_AGENT = f"daily-arxiv-astro-ph/1.0 (mailto:{CONTACT_EMAIL})"
 
-class TimeoutSession(requests.Session):
+
+class RobustSession(requests.Session):
     def request(self, *args, **kwargs):
         # Default to 30 seconds timeout if not explicitly set
         kwargs.setdefault("timeout", 30)
-        return super().request(*args, **kwargs)
+        headers = requests.structures.CaseInsensitiveDict(kwargs.get("headers") or {})
+        current_ua = headers.get("User-Agent")
+        if not current_ua:
+            headers["User-Agent"] = DEFAULT_USER_AGENT
+        elif "arxiv.py" in current_ua:
+            headers["User-Agent"] = f"{current_ua} {DEFAULT_USER_AGENT}"
+        headers.setdefault(
+            "Accept", "application/atom+xml,application/xml,text/xml;q=0.9,*/*;q=0.8"
+        )
+        kwargs["headers"] = dict(headers)
+        response = super().request(*args, **kwargs)
+        if response.status_code >= 400:
+            diagnostic_headers = {
+                key: value
+                for key, value in response.headers.items()
+                if key.lower()
+                in {
+                    "retry-after",
+                    "server",
+                    "via",
+                    "x-cache",
+                    "x-served-by",
+                    "x-request-id",
+                }
+            }
+            logger.error(
+                "arXiv HTTP failure: status=%s url=%s headers=%s body_preview=%r",
+                response.status_code,
+                response.url,
+                diagnostic_headers,
+                response.content[:2048].decode("utf-8", "replace"),
+            )
+            response.raise_for_status()
+        return response
 
 
 class CustomRetry(Retry):
     def get_backoff_time(self):
-        retry_count = len(self.history)
-        # 1st retry: 5s, 2nd: 15s, 3rd: 45s, 4th: 135s, 5th: 405s, 6th: 1215s (20 mins)
-        return 5 * (3**retry_count)
+        return min(self.backoff_max, 5 * (3 ** max(0, len(self.history) - 1)))
 
-    def increment(
-        self,
-        method=None,
-        url=None,
-        response=None,
-        error=None,
-        _pool=None,
-        _stacktrace=None,
-    ):
-        retry_count = len(self.history)
-        backoff = self.get_backoff_time()
-
-        if response:
-            status = response.status
-            retry_after = response.headers.get("Retry-After")
-            if retry_after:
-                logger.warning(
-                    f"Request failed with status {status}. Server requested Retry-After: {retry_after}s. Retrying attempt {retry_count + 1}..."
-                )
-            else:
-                logger.warning(
-                    f"Request failed with status {status}. Backing off for {backoff}s before retry {retry_count + 1}..."
-                )
-        elif error:
-            logger.warning(
-                f"Request encountered error: {error}. Backing off for {backoff}s before retry {retry_count + 1}..."
+    def sleep(self, response=None):
+        retry_after = (
+            self.get_retry_after(response)
+            if response is not None and self.respect_retry_after_header
+            else None
+        )
+        if retry_after is not None and retry_after > self.backoff_max:
+            # Stop rather than retry earlier than the server permits.
+            raise RuntimeError(
+                f"arXiv requested Retry-After={retry_after}s, exceeding the "
+                f"{self.backoff_max}s wait budget; stopping requests."
             )
-
-        return super().increment(method, url, response, error, _pool, _stacktrace)
+        delay = max(self.get_backoff_time(), retry_after or 0)
+        logger.warning(
+            "Request failed (%s). Waiting %ss before retry %s.",
+            response.status if response is not None else "connection/read error",
+            delay,
+            len(self.history),
+        )
+        time.sleep(delay)
 
 
 def get_robust_session() -> requests.Session:
-    session = TimeoutSession()
+    session = RobustSession()
     retry_strategy = CustomRetry(
-        total=8,
+        total=3,
         status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=frozenset({"GET", "HEAD"}),
+        backoff_max=60,
         respect_retry_after_header=True,
+        raise_on_status=False,
     )
     adapter = HTTPAdapter(max_retries=retry_strategy)
     session.mount("https://", adapter)
@@ -104,23 +134,18 @@ def _fetch_ids_from_rss(category: str) -> List[str]:
     """Fetch the latest arXiv IDs for a specific category using RSS feed."""
     url = f"https://rss.arxiv.org/rss/{category}"
     try:
-        session = get_robust_session()
-        response = session.get(
-            url,
-            headers={"User-Agent": "Mozilla/5.0 (daily-arxiv-astro-ph)"},
-            timeout=30,
-        )
-        response.raise_for_status()
-        xml_data = response.content
+        with get_robust_session() as session:
+            response = session.get(url, timeout=30)
+            xml_data = response.content
     except Exception as e:
         logger.error("Failed to fetch RSS for %s: %s", category, e)
-        return []
+        raise
 
     try:
         root = ET.fromstring(xml_data)
     except ET.ParseError as e:
         logger.error("Failed to parse RSS XML for %s: %s", category, e)
-        return []
+        raise
 
     channel = root.find("channel")
     if channel is None:
@@ -162,7 +187,10 @@ def _fetch_ids_from_rss(category: str) -> List[str]:
 def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
     """Fetch the latest papers for all given categories and deduplicate."""
     unique_ids = set()
-    for cat in categories:
+    for i, cat in enumerate(categories):
+        if i > 0:
+            logger.info("Sleeping 3s between RSS category requests...")
+            time.sleep(3.0)
         logger.info(f"Fetching arXiv IDs via RSS for category: {cat}")
         cat_ids = _fetch_ids_from_rss(cat)
         unique_ids.update(cat_ids)
@@ -170,6 +198,9 @@ def fetch_papers(categories: List[str]) -> List[arxiv.Result]:
     if not unique_ids:
         logger.info("No new papers found across any categories.")
         return []
+
+    logger.info("Sleeping 3s before querying arXiv API...")
+    time.sleep(3.0)
 
     id_list = list(unique_ids)
     logger.info(
@@ -193,16 +224,19 @@ def fetch_papers_for_date(
         return []
 
     unique_ids = set()
-    for cat in categories:
+    for i, cat in enumerate(categories):
+        if i > 0:
+            logger.info("Sleeping 3s between category scrapes...")
+            time.sleep(3.0)
         logger.info(f"Scraping pastweek page for {cat} on {formatted_date}")
         url = f"https://arxiv.org/list/{cat}/pastweek?show=2000"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": DEFAULT_USER_AGENT})
         try:
             with urllib.request.urlopen(req) as response:
                 html = response.read().decode("utf-8")
         except Exception as e:
             logger.error(f"Error fetching {url}: {e}")
-            continue
+            raise
 
         soup = BeautifulSoup(html, "html.parser")
         h3_tags = soup.find_all("h3")
@@ -230,6 +264,8 @@ def fetch_papers_for_date(
         logger.info(f"No papers found on pastweek page for date {target_date_str}.")
         return []
 
+    logger.info("Sleeping 3s before querying arXiv API...")
+    time.sleep(3.0)
     return fetch_papers_by_ids(list(unique_ids))
 
 
@@ -247,14 +283,17 @@ def fetch_papers_by_ids(id_list: List[str]) -> List[arxiv.Result]:
     logger.info(f"Fetching {len(fixed_ids)} unique paper IDs directly via arXiv API...")
 
     search = arxiv.Search(id_list=fixed_ids)
-    client = arxiv.Client(page_size=500, delay_seconds=10.0, num_retries=3)
+    client = arxiv.Client(page_size=500, delay_seconds=10.0, num_retries=0)
+    client._session.close()
     client._session = get_robust_session()
 
     try:
         results = list(client.results(search))
     except Exception as e:
         logger.error("Failed to fetch metadata from arXiv API: %s", e)
-        return []
+        raise
+    finally:
+        client._session.close()
 
     for p in results:
         logger.info(
