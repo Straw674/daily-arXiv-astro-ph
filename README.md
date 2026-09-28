@@ -6,12 +6,26 @@ This repository was originally forked from [daily-arXiv-ai-enhanced](https://git
 
 To keep the codebase clean and avoid commit conflicts from automated daily updates, this repository uses a split-branch strategy:
 
-- **`main` branch**: Contains all the crawler and summarization code, prompt templates, and the GitHub Action workflow configurations.
-- **[`data`](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data) branch**: Acts as the storage for the generated daily summaries (Markdown and JSONL files). The automation pushes new data to this branch on each run without touching the main codebase.
+- **`main` branch**: Contains all the crawler and summarization code, prompt templates, and local automation scripts.
+- **[`data`](https://github.com/Straw674/daily-arXiv-astro-ph/tree/data) branch**: Acts as the storage for the generated daily summaries (Markdown and JSONL files). The automated local runner updates and pushes new data to this branch via a Git Worktree in `dist/` without touching the main codebase.
 
-## Scheduling
+## Scheduling & Local Execution
 
-The GitHub Actions workflow **does not use a built-in schedule**. Instead, it is triggered externally by [cron-job.org](https://cron-job.org) via a `repository_dispatch` event sent to the GitHub API, running every weekday (Monday to Friday) at 04:43 UTC. This avoids the unreliable delays common with GitHub Actions' native cron scheduler. The workflow can also be triggered manually from the **Actions** tab using the **Run workflow** button, which exposes a `force_regen` option to re-generate data for the current day.
+The pipeline runs locally on macOS every weekday (Monday to Friday) at 12:43 CST (04:43 UTC) via `launchd` (or cron). Running locally bypasses cloud-runner IP rate limits and firewall blocks on arXiv feeds while ensuring predictable network connectivity.
+
+- **Automated Scheduling**: Configured with a macOS LaunchAgent (`scripts/com.daily-arxiv.astro-ph.plist`) loaded in `~/Library/LaunchAgents/`. If the computer is sleeping or off when the scheduled time arrives, `launchd` automatically executes the task once upon wake.
+- **Git Worktree Isolation**: The runner script (`scripts/run_daily.sh`) checks out the `data` branch into `dist/` as a Git Worktree. The working copy of `main` remains untouched, so ongoing code changes never conflict with daily automated updates.
+- **Manual Execution & Backfilling**: You can run the pipeline on demand or backfill past dates within arXiv's past week:
+  ```bash
+  # Run for today
+  ./scripts/run_daily.sh
+
+  # Backfill a specific date in the past week
+  TARGET_DATE="2026-09-25" ./scripts/run_daily.sh
+
+  # Force regenerate data for a date
+  TARGET_DATE="2026-09-25" FORCE_REGEN=true ./scripts/run_daily.sh
+  ```
 
 ## How It Works
 
@@ -49,44 +63,60 @@ The output is provided as Markdown files (located in the `data` branch). Each fi
 
 An example output can be found at [`2026-08-18.md`](2026-08-18.md) in the repository root.
 
-## How to Fork and Use
+## Setup & Configuration
 
-If you want to fork this repository to track your own interests, you will need to complete the following setup steps:
+### 1. Prerequisites & Dependencies
+- Python 3.12+ managed by [`uv`](https://docs.astral.sh/uv/)
+- Git with write access to the repository
 
-1. **GitHub Secrets & Variables**: In your forked repository, go to `Settings > Secrets and variables > Actions` and configure the following credentials and parameters. The pipeline supports any OpenAI-compatible LLM provider (e.g., DashScope/Qwen, Google Gemini, DeepSeek, OpenAI) for summarization, plus an embedding API.
+Install dependencies:
+```bash
+uv sync
+```
 
-   **Secrets** (sensitive credentials):
+### 2. Environment Variables (`.env`)
+Create a `.env` file in the project root with your credentials and parameters:
 
-   | Name                 | Description                                              |
-   | -------------------- | -------------------------------------------------------- |
-   | `DASHSCOPE_API_KEY`  | API key for DashScope / Qwen models                      |
-   | `GEMINI_API_KEY`     | API key for Google Gemini models                         |
-   | `DEEPSEEK_API_KEY`   | API key for DeepSeek models                              |
-   | `OPENAI_API_KEY`     | API key for OpenAI or generic fallback endpoint          |
-   | `OPENAI_BASE_URL`    | (Optional) Custom base URL for OpenAI-compatible gateway |
-   | `EMBEDDING_API_KEY`  | API key for the text embedding API (e.g. DashScope)      |
-   | `EMBEDDING_BASE_URL` | Base URL of the embedding API                            |
+```env
+# Summarization and Classification Model
+MODEL_NAME="gemini-3.1-pro-preview"
 
-   Configure the summarization and classification model with the GitHub Actions `MODEL_NAME` repository variable, or with `MODEL_NAME` in `.env` for local runs. If unset, the code defaults to `gemini-3.1-pro-preview`.
+# Pre-configured Provider Credentials
+DASHSCOPE_API_KEY="your-dashscope-key"
+GEMINI_API_KEY="your-gemini-key"
+DEEPSEEK_API_KEY="your-deepseek-key"
 
-   **Variables** (non-sensitive configuration):
+# Embedding API Configuration
+EMBEDDING_API_KEY="your-embedding-key"
+EMBEDDING_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
+EMBEDDING_MODEL_NAME="text-embedding-v4"
 
-   | Name                   | Example                                   | Description                                                        |
-   | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
-   | `MODEL_NAME`           | `gemini-3.1-pro-preview`                  | Model name for summarization and classification                    |
-   | `EMBEDDING_MODEL_NAME` | `text-embedding-v4`                       | Model name for text embedding                                      |
-   | `CATEGORIES`           | `astro-ph.GA, astro-ph.CO, astro-ph.IM`   | Comma-separated arXiv categories to track                          |
-   | `CUSTOM_GROUPS`        | (skipped due to length)                   | Comma-separated list of predefined research topics                 |
-   | `LANGUAGE`             | `中文`                                    | Language for the generated summaries                               |
-   | `LLM_REASONING_EFFORT` | `high`                                    | (Optional) Reasoning effort for supported models                   |
-   | `CONCURRENCY_LIMIT`    | `5`                                       | Number of concurrent LLM calls                                     |
-   | `KNN_TOP_K`            | `10`                                      | Number of nearest Zotero papers used for kNN relevance calculation |
-   | `NAME`                 | `qx24`                                    | Git committer name for the GitHub Action push                      |
-   | `EMAIL`                | `qx24@mails.tsinghua.edu.cn`              | Git committer email for the GitHub Action push                     |
+# Pipeline Parameters
+CATEGORIES="astro-ph.GA, astro-ph.CO, astro-ph.IM"
+LANGUAGE="中文"
+OUTPUT_ROOT="dist"
+CONCURRENCY_LIMIT="5"
+KNN_TOP_K="10"
+```
 
-2. **Zotero Library**:
-   - Export your personal Zotero library to a `.bib` file. **Make sure to configure the export to include abstracts**.
-   - Upload this `.bib` file to the designated directory (`zotero/` by default) in the repository.
-3. **Generate Embeddings**:
-   - Run the `zotero.py` script locally to process your `.bib` file and generate the `.json` embedding reference file.
-   - Commit and push the resulting `.json` file to the repository. This `.json` file will be used by the GitHub Action to evaluate daily papers efficiently, without needing to re-embed your entire library every time.
+### 3. Initialize Git Worktree
+Initialize the `dist/` directory as a Git Worktree tracking the `data` branch:
+```bash
+git worktree add dist data
+```
+
+### 4. Enable macOS launchd Automation
+Install and load the LaunchAgent plist:
+```bash
+cp scripts/com.daily-arxiv.astro-ph.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.daily-arxiv.astro-ph.plist
+```
+Execution logs are written to `logs/launchd_stdout.log` and `logs/launchd_stderr.log`.
+
+### 5. Zotero Reference Library Setup
+1. Export your personal reference library from Zotero to a `.bib` file (ensure abstracts are included).
+2. Save the `.bib` file into `zotero/`.
+3. Process the references to generate the embedding cache:
+   ```bash
+   uv run python src/zotero.py --bib zotero/your_library.bib --output zotero/zotero_embeddings.json
+   ```
