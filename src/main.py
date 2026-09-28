@@ -1,4 +1,3 @@
-import argparse
 import asyncio
 import json
 import logging
@@ -7,7 +6,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from openai import AsyncOpenAI, OpenAI
+from openai import OpenAI
 
 from embedding import compute_knn_scores, get_embeddings_in_batches
 from fetcher import clean_arxiv_id, fetch_papers, fetch_papers_for_date
@@ -18,6 +17,24 @@ from llm import (
 )
 from renderer import render_daily_markdown, render_readme
 
+load_dotenv()
+
+CONFIG = {
+    "step": int(os.getenv("STEP")) if os.getenv("STEP") else None,
+    "target_date": os.getenv("TARGET_DATE") or None,
+    "categories": [
+        c.strip()
+        for c in (
+            os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
+        ).split(",")
+    ],
+    "model_name": os.getenv("MODEL_NAME") or "gemini-3.1-pro-preview",
+    "language": os.getenv("LANGUAGE") or "中文",
+    "output_root": os.getenv("OUTPUT_ROOT") or "dist",
+    "force_regen": os.getenv("FORCE_REGEN", "").lower() == "true",
+    "zotero_emb_path": os.getenv("ZOTERO_EMB_PATH") or "zotero/zotero_embeddings.json",
+}
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
@@ -25,7 +42,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def run_step1(categories, fetched_jsonl_path, force_regen, target_date=None):
+def run_step1(categories, fetched_jsonl_path, force_regen, target_date=None) -> bool:
     if force_regen:
         logger.info("Force regeneration enabled. Removing existing files.")
         if os.path.exists(fetched_jsonl_path):
@@ -33,7 +50,7 @@ def run_step1(categories, fetched_jsonl_path, force_regen, target_date=None):
 
     if os.path.exists(fetched_jsonl_path):
         logger.info(f"{fetched_jsonl_path} exists. Skipping Step 1 (Fetch).")
-        return
+        return True
 
     logger.info("Fetching new papers from arXiv...")
     if target_date:
@@ -42,7 +59,7 @@ def run_step1(categories, fetched_jsonl_path, force_regen, target_date=None):
         papers = fetch_papers(categories)
     if not papers:
         logger.info("No new papers found today.")
-        return
+        return False
 
     with open(fetched_jsonl_path, "w", encoding="utf-8") as f:
         for p in papers:
@@ -59,6 +76,7 @@ def run_step1(categories, fetched_jsonl_path, force_regen, target_date=None):
             }
             f.write(json.dumps(p_dict, ensure_ascii=False) + "\n")
     logger.info(f"Step 1 complete. Fetched data saved to {fetched_jsonl_path}")
+    return True
 
 
 async def run_step2(fetched_jsonl_path, jsonl_path, model_name, language, force_regen):
@@ -215,61 +233,53 @@ def run_step3(
     logger.info("Step 3 complete.")
 
 
-async def main():
-    parser = argparse.ArgumentParser(description="Daily arXiv Summarizer")
-    parser.add_argument(
-        "--step",
-        type=int,
-        choices=[1, 2, 3],
-        help="1: Fetch, 2: LLM, 3: Embed and Render. If omitted, runs all sequentially.",
-    )
-    parser.add_argument(
-        "--date",
-        type=str,
-        help="Override the current date for the run (format: YYYY-MM-DD).",
-    )
-    args = parser.parse_args()
-
-    load_dotenv()
-
-    categories = (
-        os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
-    ).split(",")
-    categories = [c.strip() for c in categories]
-    model_name = os.getenv("MODEL_NAME") or "gemini-3.1-pro-preview"
-    language = os.getenv("LANGUAGE") or "中文"
-    output_root = os.getenv("OUTPUT_ROOT") or "dist"
-    data_dir = os.path.join(output_root, "data")
-    force_regen = os.getenv("FORCE_REGEN") == "true"
-    zotero_emb_path = os.getenv("ZOTERO_EMB_PATH") or "zotero/zotero_embeddings.json"
-
+async def main(config: dict = CONFIG):
+    data_dir = os.path.join(config["output_root"], "data")
     os.makedirs(data_dir, exist_ok=True)
 
     today_str = (
-        args.date if args.date else datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        config["target_date"]
+        if config["target_date"]
+        else datetime.now(timezone.utc).strftime("%Y-%m-%d")
     )
     fetched_jsonl_path = os.path.join(data_dir, f"{today_str}_fetched.jsonl")
     jsonl_path = os.path.join(data_dir, f"{today_str}.jsonl")
     md_path = os.path.join(data_dir, f"{today_str}.md")
-    readme_path = os.path.join(output_root, "README.md")
+    readme_path = os.path.join(config["output_root"], "README.md")
 
-    if args.step in [1, None]:
-        run_step1(categories, fetched_jsonl_path, force_regen, args.date)
+    if config["step"] in [1, None]:
+        has_papers = run_step1(
+            config["categories"],
+            fetched_jsonl_path,
+            config["force_regen"],
+            config["target_date"],
+        )
+        if not has_papers and not os.path.exists(fetched_jsonl_path):
+            logger.info("No papers fetched or found. Pipeline completed.")
+            return
 
-    if args.step in [2, None]:
+    if not os.path.exists(fetched_jsonl_path):
+        logger.error(f"{fetched_jsonl_path} not found. Please run Step 1 first.")
+        return
+
+    if config["step"] in [2, None]:
         await run_step2(
-            fetched_jsonl_path, jsonl_path, model_name, language, force_regen
+            fetched_jsonl_path,
+            jsonl_path,
+            config["model_name"],
+            config["language"],
+            config["force_regen"],
         )
 
-    if args.step in [3, None]:
+    if config["step"] in [3, None]:
         run_step3(
             jsonl_path,
             md_path,
             readme_path,
             data_dir,
             today_str,
-            force_regen,
-            zotero_emb_path,
+            config["force_regen"],
+            config["zotero_emb_path"],
         )
 
 
