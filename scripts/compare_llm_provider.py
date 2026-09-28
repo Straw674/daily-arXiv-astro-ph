@@ -509,7 +509,8 @@ async def main():
         )
         eval_results.append(paper_res)
 
-    output_dir = Path(__file__).resolve().parent.parent / "dist" / "eval"
+    output_dir = Path(__file__).resolve().parent.parent / "docs" / "trials" / "eval"
+    output_dir.mkdir(parents=True, exist_ok=True)
     output_report_path = output_dir / f"model_comparison_{today_str}.md"
     save_markdown_report(eval_results, str(output_report_path), today_str)
     print(
