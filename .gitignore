@@ -16,4 +16,4 @@ data/
 # Others
 .DS_Store
 logs/
-.github/copilot-instructions.md
+archive/
