@@ -75,19 +75,19 @@ uv sync
 ```
 
 ### 2. Environment Variables (`.env`)
-Create a `.env` file in the project root. The pipeline supports any **OpenAI-compatible LLM and text-embedding provider** (e.g. OpenAI, Google Gemini, DeepSeek, DashScope/Qwen, SiliconFlow, or local endpoints via vLLM/Ollama).
+Create a `.env` file in the project root. The pipeline supports any OpenAI-compatible LLM and text-embedding API.
 
-The provider credentials listed below (`DASHSCOPE_API_KEY`, `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`) are merely **examples** showing preset shortcuts that allow switching model families simply by updating `MODEL_NAME`. For general use or other providers, configure `OPENAI_API_KEY` and `OPENAI_BASE_URL`:
+You can configure a generic OpenAI-compatible endpoint using `OPENAI_API_KEY` and `OPENAI_BASE_URL`, or use pre-configured environment variables for specific providers:
 
 ```env
 # Summarization and Classification Model
 MODEL_NAME="gemini-3.1-pro-preview"
 
-# Option A: Generic / Custom OpenAI-Compatible Provider (Works for any provider)
+# Generic OpenAI-Compatible Endpoint
 OPENAI_API_KEY="your-api-key"
 OPENAI_BASE_URL="https://api.example.com/v1"
 
-# Option B: Pre-configured Provider Shortcuts (Examples)
+# Pre-configured Provider Credentials (Optional)
 # DASHSCOPE_API_KEY="your-dashscope-key"
 # GEMINI_API_KEY="your-gemini-key"
 # DEEPSEEK_API_KEY="your-deepseek-key"
