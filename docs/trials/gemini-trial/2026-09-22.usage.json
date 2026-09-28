@@ -1,0 +1,22 @@
+[
+  {
+    "model": "gemini-3.1-pro-preview",
+    "usage": {
+      "completion_tokens": 447,
+      "prompt_tokens": 485,
+      "total_tokens": 2881,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    }
+  },
+  {
+    "model": "gemini-3.1-pro-preview",
+    "usage": {
+      "completion_tokens": 494,
+      "prompt_tokens": 515,
+      "total_tokens": 2927,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    }
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "paper": {
+    "id": "2608.00250",
+    "title": "Directional Anisotropic Sensitivity Curves for Pulsar Timing Arrays",
+    "summary": "After two decades of observations, pulsar timing array collaborations have reported strong evidence for a stochastic gravitational wave background, most likely sourced by an inspiraling population of supermassive black hole binaries. Because that population is finite, anisotropy in the background is inevitable, producing hotspots on the sky that track the loudest binaries. Building on the Fisher formalism for anisotropic backgrounds, we recast the directional Fisher information as effective sensitivity curves on the sky, distinguishing the radiometer and full-Fisher estimators, along with a sky-weighted curve that reduces the anisotropic sky to a single spectrum and recovers the standard isotropic curve in the isotropic limit. We implement five sky-decomposition bases: pixel, spherical harmonic, square-root spherical harmonic, radiometer, and principal-map. We demonstrate the framework on an IPTA-like pulsar timing array: characterizing the angular response, analyzing the Fisher structure, recovering injected anisotropic hotspots, and forecasting future-array sensitivity. The framework is released as an extension to the sensitivity software package hasasia.",
+    "url": "https://arxiv.org/abs/2608.00250",
+    "pdf_url": "https://arxiv.org/pdf/2608.00250",
+    "categories": [
+      "Instrumentation and Methods for Astrophysics (astro-ph.IM)",
+      "General Relativity and Quantum Cosmology (gr-qc)"
+    ],
+    "history": "Submission history From: Daniel Oliver [view email]       [v1]         Fri, 31 Jul 2026 19:46:12 UTC (5,329 KB)"
+  },
+  "results": [
+    {
+      "name": "Qwen 27B (qwen3.6-27b)",
+      "model_id": "qwen3.6-27b",
+      "thinking_setting": "extra_body={'enable_thinking': True} (Max Thinking Enabled)",
+      "pricing_desc": "Input: ¥3.00 / 1M tokens ($0.42/1M), Output: ¥18.00 / 1M tokens ($2.52/1M)",
+      "success": true,
+      "elapsed_seconds": 50.61,
+      "prompt_tokens": 448,
+      "completion_tokens": 2956,
+      "cost_usd": 0.00763,
+      "cost_cny": 0.0546,
+      "reasoning_len": 8491,
+      "background_knowledge": "脉冲星计时阵列（Pulsar Timing Arrays, PTAs）是低频引力波（Gravitational Waves, GWs）探测的核心范式之一。其基本原理是利用分布在银河系内、自转极其稳定的毫秒脉冲星作为高精度“宇宙时钟”，通过长期监测脉冲到达时间（Time of Arrival, ToA）的微小残差，来探测波长跨越数千光年的纳赫兹（nanohertz）频段引力波。近年来，全球多个PTA合作组已独立报告了强烈的随机引力波背景（Stochastic Gravitational Wave Background, SGWB）证据，该背景最可能的物理起源是宇宙中大量正在旋进并合的超大质量黑洞双星（Supermassive Black Hole Binaries, SMBHBs）。由于可观测宇宙中的SMBHBs总数有限且空间分布不均，其辐射叠加形成的引力波背景必然呈现出各向异性（Anisotropy）特征，天空中存在对应于最亮双星系统的辐射“热点”。传统PTA数据分析多假设背景完全各向同性，但为了提取天体物理源的空间分布信息、研究黑洞并合历史乃至检验宇宙学模型，发展各向异性背景的建模与参数估计方法已成为PTA数据分析的核心前沿。在统计推断框架中，费雪信息矩阵（Fisher Information Matrix）被广泛用于评估探测器灵敏度、参数估计精度及优化观测策略。将各向异性天图分解与费雪形式体系（Fisher Formalism）相结合，构建方向依赖的有效灵敏度曲线，是连接理论天体物理源分布与实际阵列探测能力的桥梁，对下一代PTA观测阵列的科学目标规划具有关键指导意义。",
+      "contribution": "本文基于各向异性随机引力波背景的费雪形式体系，提出了一种将方向性费雪信息转化为天空有效灵敏度曲线（Effective Sensitivity Curves）的分析框架。作者明确区分了辐射计估计器（Radiometer Estimator）与全费雪估计器（Full-Fisher Estimator）在灵敏度表征上的差异，并引入一种天空加权曲线（Sky-weighted Curve），可将复杂的各向异性天图压缩为单一频谱，且在物理极限下严格退化为标准的各向同性灵敏度曲线。研究系统实现并对比了五种天图分解基底（Sky-decomposition Bases），包括像素基底（Pixel）、球谐函数（Spherical Harmonic）、平方根球谐函数（Square-root Spherical Harmonic）、辐射计基底（Radiometer）与主映射基底（Principal-map）。该框架在以国际脉冲星计时阵列（IPTA）为原型的模拟阵列上得到了全面验证：成功刻画了阵列的角响应特性，解析了费雪矩阵的内在结构，高精度恢复了注入的各向异性热点信号，并据此对下一代PTA阵列的灵敏度进行了前瞻性预报。最终，该分析框架作为开源扩展模块集成至灵敏度计算软件包`hasasia`中，为PTA社区处理各向异性引力波背景数据提供了标准化的计算工具。",
+      "raw_response": "{\n  \"background_knowledge\": \"脉冲星计时阵列（Pulsar Timing Arrays, PTAs）是低频引力波（Gravitational Waves, GWs）探测的核心范式之一。其基本原理是利用分布在银河系内、自转极其稳定的毫秒脉冲星作为高精度“宇宙时钟”，通过长期监测脉冲到达时间（Time of Arrival, ToA）的微小残差，来探测波长跨越数千光年的纳赫兹（nanohertz）频段引力波。近年来，全球多个PTA合作组已独立报告了强烈的随机引力波背景（Stochastic Gravitational Wave Background, SGWB）证据，该背景最可能的物理起源是宇宙中大量正在旋进并合的超大质量黑洞双星（Supermassive Black Hole Binaries, SMBHBs）。由于可观测宇宙中的SMBHBs总数有限且空间分布不均，其辐射叠加形成的引力波背景必然呈现出各向异性（Anisotropy）特征，天空中存在对应于最亮双星系统的辐射“热点”。传统PTA数据分析多假设背景完全各向同性，但为了提取天体物理源的空间分布信息、研究黑洞并合历史乃至检验宇宙学模型，发展各向异性背景的建模与参数估计方法已成为PTA数据分析的核心前沿。在统计推断框架中，费雪信息矩阵（Fisher Information Matrix）被广泛用于评估探测器灵敏度、参数估计精度及优化观测策略。将各向异性天图分解与费雪形式体系（Fisher Formalism）相结合，构建方向依赖的有效灵敏度曲线，是连接理论天体物理源分布与实际阵列探测能力的桥梁，对下一代PTA观测阵列的科学目标规划具有关键指导意义。\",\n  \"contribution\": \"本文基于各向异性随机引力波背景的费雪形式体系，提出了一种将方向性费雪信息转化为天空有效灵敏度曲线（Effective Sensitivity Curves）的分析框架。作者明确区分了辐射计估计器（Radiometer Estimator）与全费雪估计器（Full-Fisher Estimator）在灵敏度表征上的差异，并引入一种天空加权曲线（Sky-weighted Curve），可将复杂的各向异性天图压缩为单一频谱，且在物理极限下严格退化为标准的各向同性灵敏度曲线。研究系统实现并对比了五种天图分解基底（Sky-decomposition Bases），包括像素基底（Pixel）、球谐函数（Spherical Harmonic）、平方根球谐函数（Square-root Spherical Harmonic）、辐射计基底（Radiometer）与主映射基底（Principal-map）。该框架在以国际脉冲星计时阵列（IPTA）为原型的模拟阵列上得到了全面验证：成功刻画了阵列的角响应特性，解析了费雪矩阵的内在结构，高精度恢复了注入的各向异性热点信号，并据此对下一代PTA阵列的灵敏度进行了前瞻性预报。最终，该分析框架作为开源扩展模块集成至灵敏度计算软件包`hasasia`中，为PTA社区处理各向异性引力波背景数据提供了标准化的计算工具。\"\n}"
+    },
+    {
+      "name": "Gemini 3.7 Flash",
+      "model_id": "gemini-3.7-flash",
+      "thinking_setting": "reasoning_effort='high' (Max 24,576 Thinking Tokens)",
+      "pricing_desc": "Input: $0.75 / 1M tokens, Output: $3.75 / 1M tokens",
+      "success": true,
+      "elapsed_seconds": 7.44,
+      "prompt_tokens": 434,
+      "completion_tokens": 613,
+      "cost_usd": 0.002624,
+      "cost_cny": 0.0188,
+      "reasoning_len": 0,
+      "background_knowledge": "脉冲星测时阵列（Pulsar Timing Array, PTA）是利用银河系内毫秒脉冲星（Millisecond Pulsar, MSP）所组成的超大尺度“宇宙探测器网”，主要致力于探测纳赫兹（Nanohertz, nHz）频段的低频引力波（Gravitational Waves, GW）。在该频段，最主要的天体物理源是星系并合后由星系核心构成的超大质量双黑洞（Supermassive Black Hole Binaries, SMBHBs）旋近过程。大量此类并合系统发射的未被单独分辨的引力波信号交织在一起，会叠加形成随机引力波背景（Stochastic Gravitational Wave Background, SGWB）。在传统的理想假设下，SGWB通常被建模为全天各向同性（Isotropic）的随机高斯场，且脉冲星对之间的测时残差表现为特征性的赫林斯-唐斯（Hellings-Downs）空间关联。然而，由于宇宙中处于探测频段且能量最强的主导双黑洞数量是有限的，真实的SGWB必然存在统计上的各向异性（Anisotropy），在特定天区形成能量集中的“热点”（Hotspots）。为了评估PTA探测这类非均匀分布背景信号的能力，需要从传统的一维各向同性灵敏度曲线拓展到包含天区空间分布的多维方向灵敏度表征框架与数学分解方法。",
+      "contribution": "该研究基于用于各向异性背景的费舍尔（Fisher）形式，提出了一种将方向费舍尔信息重构为天球有效灵敏度曲线的分析框架。主要贡献包括：\n1. 区分并推导了辐射计估计器（Radiometer Estimator）与完整费舍尔估计器（Full-Fisher Estimator）的方向灵敏度，并引入了一种全天加权曲线，能够将各向异性天区响应简化为单一能谱，且在各向同性极限下可严格退化为标准各向同性灵敏度曲线；\n2. 实现了五种天区空间分解基底：像素（Pixel）、球谐函数（Spherical Harmonic）、平方根球谐函数（Square-Root Spherical Harmonic）、辐射计（Radiometer）以及主成分图（Principal-Map）；\n3. 以类国际脉冲星测时阵列（International Pulsar Timing Array, IPTA）模型为例进行了演示，表征了阵列的角度响应、解析了Fisher矩阵结构、成功复原了注入的各向异性热点，并对未来探测阵列的灵敏度进行了预测；\n4. 将整套框架作为扩展模块集成并开源发布至灵敏度计算软件包hasasia中。",
+      "raw_response": "{\n  \"background_knowledge\": \"脉冲星测时阵列（Pulsar Timing Array, PTA）是利用银河系内毫秒脉冲星（Millisecond Pulsar, MSP）所组成的超大尺度“宇宙探测器网”，主要致力于探测纳赫兹（Nanohertz, nHz）频段的低频引力波（Gravitational Waves, GW）。在该频段，最主要的天体物理源是星系并合后由星系核心构成的超大质量双黑洞（Supermassive Black Hole Binaries, SMBHBs）旋近过程。大量此类并合系统发射的未被单独分辨的引力波信号交织在一起，会叠加形成随机引力波背景（Stochastic Gravitational Wave Background, SGWB）。在传统的理想假设下，SGWB通常被建模为全天各向同性（Isotropic）的随机高斯场，且脉冲星对之间的测时残差表现为特征性的赫林斯-唐斯（Hellings-Downs）空间关联。然而，由于宇宙中处于探测频段且能量最强的主导双黑洞数量是有限的，真实的SGWB必然存在统计上的各向异性（Anisotropy），在特定天区形成能量集中的“热点”（Hotspots）。为了评估PTA探测这类非均匀分布背景信号的能力，需要从传统的一维各向同性灵敏度曲线拓展到包含天区空间分布的多维方向灵敏度表征框架与数学分解方法。\",\n  \"contribution\": \"该研究基于用于各向异性背景的费舍尔（Fisher）形式，提出了一种将方向费舍尔信息重构为天球有效灵敏度曲线的分析框架。主要贡献包括：\\n1. 区分并推导了辐射计估计器（Radiometer Estimator）与完整费舍尔估计器（Full-Fisher Estimator）的方向灵敏度，并引入了一种全天加权曲线，能够将各向异性天区响应简化为单一能谱，且在各向同性极限下可严格退化为标准各向同性灵敏度曲线；\\n2. 实现了五种天区空间分解基底：像素（Pixel）、球谐函数（Spherical Harmonic）、平方根球谐函数（Square-Root Spherical Harmonic）、辐射计（Radiometer）以及主成分图（Principal-Map）；\\n3. 以类国际脉冲星测时阵列（International Pulsar Timing Array, IPTA）模型为例进行了演示，表征了阵列的角度响应、解析了Fisher矩阵结构、成功复原了注入的各向异性热点，并对未来探测阵列的灵敏度进行了预测；\\n4. 将整套框架作为扩展模块集成并开源发布至灵敏度计算软件包hasasia中。\"\n}"
+    },
+    {
+      "name": "Gemini 3.5 Flash Lite",
+      "model_id": "gemini-3.5-flash-lite",
+      "thinking_setting": "reasoning_effort='high' (Max Reasoning Effort)",
+      "pricing_desc": "Input: $0.30 / 1M tokens, Output: $2.50 / 1M tokens",
+      "success": true,
+      "elapsed_seconds": 8.71,
+      "prompt_tokens": 434,
+      "completion_tokens": 550,
+      "cost_usd": 0.001505,
+      "cost_cny": 0.0108,
+      "reasoning_len": 0,
+      "background_knowledge": "脉冲星计时阵列（Pulsar Timing Array, PTA）是当前探测纳赫兹（nanohertz）引力波的核心前沿手段。通过长期高精度监测银河系内毫秒脉冲星（millisecond pulsar）的脉冲到达时间（Time of Arrival, ToA），PTA能够对宇宙中超大质量黑洞双星（Supermassive Black Hole Binaries, SMBHBs）合并所产生的随机引力波背景（Stochastic Gravitational Wave Background, SGWB）进行探测。近年来，各大国际PTA合作组已陆续汇集了支持SGWB存在的强有力证据。从天体物理学角度来看，由于产生纳赫兹引力波的双星总体数量是有限的且空间分布不均，引力波背景天然具有空间各向异性（anisotropy），在天球上会形成由最强源贡献构成的“热点”（hotspots）。发展能够定量刻画、解析和预测这种各向异性引力波背景的分析框架与灵敏度评估工具，是当前引力波天文学的重要前沿方向。",
+      "contribution": "该论文针对脉冲星计时阵列（PTA）中的各向异性随机引力波背景（anisotropic stochastic gravitational wave background）提出了一套系统化的方向各向异性灵敏度曲线计算框架。基于各向异性背景的费雪形式（Fisher formalism），作者将定向费雪信息（directional Fisher information）转化为天球上的有效灵敏度曲线（effective sensitivity curves），清晰地区分了辐射计估计量（radiometer estimator）与全费雪估计量（full-Fisher estimator），并引入了天区加权曲线（sky-weighted curve）以便将复杂的各向异性天区简化为单一谱，从而在各向异性极限下平滑过渡并恢复标准的各向同性曲线。论文具体实现了五种天区分解基底：像素基底（pixel）、球面谐函数（spherical harmonic）、平方根球面谐函数（square-root spherical harmonic）、辐射计基底（radiometer）和主成分图基底（principal-map）。作者在一个类国际脉冲星计时阵列（IPTA-like pulsar timing array）上展示了该框架的应用，完成了角响应（angular response）表征、费雪结构分析、注入的各向异性热点恢复以及未来阵列灵敏度预测。该分析框架已作为开源灵敏度计算软件包 hasasia 的功能扩展正式发布。",
+      "raw_response": "{\n  \"background_knowledge\": \"脉冲星计时阵列（Pulsar Timing Array, PTA）是当前探测纳赫兹（nanohertz）引力波的核心前沿手段。通过长期高精度监测银河系内毫秒脉冲星（millisecond pulsar）的脉冲到达时间（Time of Arrival, ToA），PTA能够对宇宙中超大质量黑洞双星（Supermassive Black Hole Binaries, SMBHBs）合并所产生的随机引力波背景（Stochastic Gravitational Wave Background, SGWB）进行探测。近年来，各大国际PTA合作组已陆续汇集了支持SGWB存在的强有力证据。从天体物理学角度来看，由于产生纳赫兹引力波的双星总体数量是有限的且空间分布不均，引力波背景天然具有空间各向异性（anisotropy），在天球上会形成由最强源贡献构成的“热点”（hotspots）。发展能够定量刻画、解析和预测这种各向异性引力波背景的分析框架与灵敏度评估工具，是当前引力波天文学的重要前沿方向。\",\n  \"contribution\": \"该论文针对脉冲星计时阵列（PTA）中的各向异性随机引力波背景（anisotropic stochastic gravitational wave background）提出了一套系统化的方向各向异性灵敏度曲线计算框架。基于各向异性背景的费雪形式（Fisher formalism），作者将定向费雪信息（directional Fisher information）转化为天球上的有效灵敏度曲线（effective sensitivity curves），清晰地区分了辐射计估计量（radiometer estimator）与全费雪估计量（full-Fisher estimator），并引入了天区加权曲线（sky-weighted curve）以便将复杂的各向异性天区简化为单一谱，从而在各向异性极限下平滑过渡并恢复标准的各向同性曲线。论文具体实现了五种天区分解基底：像素基底（pixel）、球面谐函数（spherical harmonic）、平方根球面谐函数（square-root spherical harmonic）、辐射计基底（radiometer）和主成分图基底（principal-map）。作者在一个类国际脉冲星计时阵列（IPTA-like pulsar timing array）上展示了该框架的应用，完成了角响应（angular response）表征、费雪结构分析、注入的各向异性热点恢复以及未来阵列灵敏度预测。该分析框架已作为开源灵敏度计算软件包 hasasia 的功能扩展正式发布。\"\n}"
+    }
+  ]
+}
