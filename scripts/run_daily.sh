@@ -56,7 +56,6 @@ if [ -n "$CHANGES" ]; then
     git -C "$WORKTREE_DIR" push origin data
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Successfully updated and pushed data for $RUN_DATE."
-    osascript -e 'display notification "arXiv Daily summary updated and pushed to data branch." with title "arXiv Daily (Success)"' 2>/dev/null || true
 else
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] No changes detected in data branch (feed empty or already generated)."
 fi
