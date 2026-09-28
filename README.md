@@ -75,18 +75,24 @@ uv sync
 ```
 
 ### 2. Environment Variables (`.env`)
-Create a `.env` file in the project root with your credentials and parameters:
+Create a `.env` file in the project root. The pipeline supports any **OpenAI-compatible LLM and text-embedding provider** (e.g. OpenAI, Google Gemini, DeepSeek, DashScope/Qwen, SiliconFlow, or local endpoints via vLLM/Ollama).
+
+The provider credentials listed below (`DASHSCOPE_API_KEY`, `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`) are merely **examples** showing preset shortcuts that allow switching model families simply by updating `MODEL_NAME`. For general use or other providers, configure `OPENAI_API_KEY` and `OPENAI_BASE_URL`:
 
 ```env
 # Summarization and Classification Model
 MODEL_NAME="gemini-3.1-pro-preview"
 
-# Pre-configured Provider Credentials
-DASHSCOPE_API_KEY="your-dashscope-key"
-GEMINI_API_KEY="your-gemini-key"
-DEEPSEEK_API_KEY="your-deepseek-key"
+# Option A: Generic / Custom OpenAI-Compatible Provider (Works for any provider)
+OPENAI_API_KEY="your-api-key"
+OPENAI_BASE_URL="https://api.example.com/v1"
 
-# Embedding API Configuration
+# Option B: Pre-configured Provider Shortcuts (Examples)
+# DASHSCOPE_API_KEY="your-dashscope-key"
+# GEMINI_API_KEY="your-gemini-key"
+# DEEPSEEK_API_KEY="your-deepseek-key"
+
+# Embedding API Configuration (Any OpenAI-compatible embedding service)
 EMBEDDING_API_KEY="your-embedding-key"
 EMBEDDING_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 EMBEDDING_MODEL_NAME="text-embedding-v4"
