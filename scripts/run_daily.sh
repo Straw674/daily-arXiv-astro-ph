@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Ensure essential tools (uv, git, homebrew) are available in launchd/cron environments
-export PATH="/Users/xinq/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -37,12 +37,11 @@ fi
 
 # Pull latest commits from origin/data
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Syncing data branch with remote..."
-git -C "$WORKTREE_DIR" fetch origin data
 git -C "$WORKTREE_DIR" pull --rebase origin data
 
 # Execute Python pipeline
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Executing src/main.py..."
-TARGET_DATE="$TARGET_DATE" FORCE_REGEN="$FORCE_REGEN" uv run python src/main.py
+TARGET_DATE="$RUN_DATE" FORCE_REGEN="$FORCE_REGEN" uv run python src/main.py
 
 # Detect changes in worktree
 CHANGES=$(git -C "$WORKTREE_DIR" status --porcelain)
