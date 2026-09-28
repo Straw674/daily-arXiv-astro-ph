@@ -78,7 +78,7 @@ Configure either generic OpenAI-compatible credentials or provider-specific vari
 
 ```env
 # Summarization and Classification Model
-MODEL_NAME="gemini-3.1-pro-preview"
+MODEL_NAME="gemini-3.7-flash"
 
 # Generic OpenAI-Compatible Endpoint
 OPENAI_API_KEY="your-api-key"

@@ -28,7 +28,7 @@ CONFIG = {
             os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
         ).split(",")
     ],
-    "model_name": os.getenv("MODEL_NAME") or "gemini-3.1-pro-preview",
+    "model_name": os.getenv("MODEL_NAME") or "gemini-3.7-flash",
     "language": os.getenv("LANGUAGE") or "中文",
     "output_root": os.getenv("OUTPUT_ROOT") or "dist",
     "force_regen": os.getenv("FORCE_REGEN", "").lower() == "true",
