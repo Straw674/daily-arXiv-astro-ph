@@ -11,7 +11,7 @@ The repository maintains an isolated branch structure to separate automation scr
 
 ## Scheduling & Execution
 
-The pipeline executes on macOS on weekdays (Monday to Friday) at 12:43 CST (04:43 UTC).
+The pipeline executes on macOS on weekdays (Monday to Friday) at 20:00 CST (12:00 UTC).
 
 - **Automated Scheduling**: Managed by a launchd agent (`scripts/com.daily-arxiv.astro-ph.plist`) in `~/Library/LaunchAgents/`. If the system is asleep during a scheduled time, launchd triggers execution upon wake.
 - **Git Worktree Isolation**: The execution script (`scripts/run_daily.sh`) checks out the `data` branch into `dist/` as a Git Worktree. The working copy on `main` remains untouched, preventing conflicts with local modifications.
