@@ -13,7 +13,10 @@ dependencies = [
     "bibtexparser>=1.4.1",
     "beautifulsoup4>=4.15.0",
     "numpy>=2.5.2",
+    "pyarrow>=25.0.1",
 ]
 
 [dependency-groups]
-dev = []
+dev = [
+    "ruff>=0.16.10",
+]
