@@ -5,9 +5,11 @@ import os
 import re
 from typing import Any, Dict
 
+from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 
@@ -63,17 +65,53 @@ def get_system_prompt(language: str, topics: list[str]) -> str:
     )
 
 
+def get_completion_extra_kwargs(model_name: str) -> Dict[str, Any]:
+    """Build extra parameters for Chat Completion calls.
+
+    For DeepSeek models, ensures thinking mode is enabled via extra_body
+    and reasoning_effort is passed (defaulting to 'max' for DeepSeek).
+    """
+    extra_kwargs: Dict[str, Any] = {}
+    model_lower = model_name.lower()
+    reasoning_effort = os.getenv("LLM_REASONING_EFFORT")
+    if not reasoning_effort and (
+        "deepseek" in model_lower or model_lower.startswith("ds")
+    ):
+        reasoning_effort = "max"
+
+    if reasoning_effort:
+        extra_kwargs["reasoning_effort"] = reasoning_effort
+
+    if "deepseek" in model_lower or model_lower.startswith("ds"):
+        extra_kwargs["extra_body"] = {"thinking": {"type": "enabled"}}
+
+    return extra_kwargs
+
+
 def create_llm_client(model_name: str | None = None) -> tuple[AsyncOpenAI, str]:
     """Create an AsyncOpenAI client configured for the given model_name or environment settings.
 
     Automatically resolves base_url and API key based on the model family:
+      - DeepSeek (e.g. deepseek-flash)                   -> DEEPSEEK_API_KEY / DEEPSEEK_BASE_URL
       - Qwen / DashScope (e.g. qwen3.8-flash, qwen-plus) -> DASHSCOPE_API_KEY / DASHSCOPE_BASE_URL
       - Google Gemini (e.g. gemini-3.5-flash-lite)        -> GEMINI_API_KEY / GEMINI_BASE_URL
-      - DeepSeek (e.g. deepseek-flash)                   -> DEEPSEEK_API_KEY / DEEPSEEK_BASE_URL
       - OpenAI / Generic                                 -> OPENAI_API_KEY / OPENAI_BASE_URL
     """
-    model = model_name or os.getenv("MODEL_NAME") or "gemini-3.7-flash"
+    model = model_name or os.getenv("MODEL_NAME") or "deepseek-flash"
     model_lower = model.lower()
+
+    # Map DeepSeek aliases/shorthands to official endpoint model name
+    if model_lower in (
+        "deepseek-flash",
+        "deepseek-v4.1-flash",
+        "deepseek-4.1-flash",
+        "ds-4.1-flash",
+        "ds-flash",
+        "ds4.1-flash",
+        "ds 4.1 flash",
+    ):
+        model = "deepseek-flash"
+        model_lower = "deepseek-flash"
 
     # Generic or custom override if explicitly provided
     custom_base_url = os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")
@@ -108,7 +146,7 @@ def create_llm_client(model_name: str | None = None) -> tuple[AsyncOpenAI, str]:
             or "https://generativelanguage.googleapis.com/v1beta/openai/"
         )
         key_source = "GEMINI_API_KEY"
-    elif model_lower.startswith("deepseek"):
+    elif model_lower.startswith(("deepseek", "ds")):
         api_key = os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY")
         base_url = os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
         key_source = "DEEPSEEK_API_KEY"
@@ -144,10 +182,7 @@ async def enhance_paper(
     topics: list[str],
 ) -> Dict[str, Any]:
     MAX_RETRIES = 5
-    extra_kwargs: Dict[str, Any] = {}
-    reasoning_effort = os.getenv("LLM_REASONING_EFFORT")
-    if reasoning_effort:
-        extra_kwargs["reasoning_effort"] = reasoning_effort
+    extra_kwargs = get_completion_extra_kwargs(model_name)
 
     async with sem:
         prompt = f"Title: {paper['title']}\n\nAbstract: {paper['summary']}"
@@ -259,10 +294,7 @@ async def generate_daily_topics(
     )
 
     MAX_RETRIES = 5
-    extra_kwargs: Dict[str, Any] = {}
-    reasoning_effort = os.getenv("LLM_REASONING_EFFORT")
-    if reasoning_effort:
-        extra_kwargs["reasoning_effort"] = reasoning_effort
+    extra_kwargs = get_completion_extra_kwargs(model_name)
 
     for attempt in range(MAX_RETRIES + 1):
         try:

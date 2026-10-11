@@ -28,7 +28,7 @@ CONFIG = {
             os.getenv("CATEGORIES") or "astro-ph.GA, astro-ph.CO, astro-ph.IM"
         ).split(",")
     ],
-    "model_name": os.getenv("MODEL_NAME") or "gemini-3.7-flash",
+    "model_name": os.getenv("MODEL_NAME") or "deepseek-flash",
     "language": os.getenv("LANGUAGE") or "中文",
     "output_root": os.getenv("OUTPUT_ROOT") or "dist",
     "force_regen": os.getenv("FORCE_REGEN", "").lower() == "true",
@@ -179,12 +179,14 @@ def group_and_sort_papers(enhanced_data):
 
     sorted_topics = sorted(
         grouped_data.keys(),
-        key=lambda t: sum(
-            x.get("similarity_score", 0.0) * (0.5**i)
-            for i, x in enumerate(grouped_data[t])
-        )
-        if t != "Others"
-        else -float("inf"),
+        key=lambda t: (
+            sum(
+                x.get("similarity_score", 0.0) * (0.5**i)
+                for i, x in enumerate(grouped_data[t])
+            )
+            if t != "Others"
+            else -float("inf")
+        ),
         reverse=True,
     )
 

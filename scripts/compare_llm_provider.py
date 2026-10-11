@@ -76,7 +76,10 @@ MODELS_CONFIG: Dict[str, Dict[str, Any]] = {
         # Off-peak Cache Hit: $0.003 in per 1M tokens
         # Abstract summarization prompt has >80% unique content, so Cache Miss pricing is used.
         "pricing": {"input": 0.15, "output": 0.60},
-        "extra_kwargs": {},
+        "extra_kwargs": {
+            "reasoning_effort": "max",
+            "extra_body": {"thinking": {"type": "enabled"}},
+        },
         "enabled": True,
     },
     "deepseek-v4-pro": {
