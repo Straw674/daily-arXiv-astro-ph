@@ -35,9 +35,25 @@ if [ ! -d "$WORKTREE_DIR/.git" ] && [ ! -f "$WORKTREE_DIR/.git" ]; then
     git worktree add "$WORKTREE_DIR" data
 fi
 
+run_with_retry() {
+    local max_attempts=3
+    local delay=5
+    local attempt=1
+    until "$@"; do
+        if [ "$attempt" -ge "$max_attempts" ]; then
+            echo "Command '$*' failed after $max_attempts attempts." >&2
+            return 1
+        fi
+        echo "Command '$*' failed (attempt $attempt/$max_attempts). Retrying in ${delay}s..." >&2
+        sleep "$delay"
+        attempt=$((attempt + 1))
+        delay=$((delay * 2))
+    done
+}
+
 # Pull latest commits from origin/data
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Syncing data branch with remote..."
-git -C "$WORKTREE_DIR" pull --rebase origin data
+run_with_retry git -C "$WORKTREE_DIR" pull --rebase origin data
 
 # Execute Python pipeline
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Executing src/main.py..."
@@ -52,7 +68,7 @@ if [ -n "$CHANGES" ]; then
     git -C "$WORKTREE_DIR" commit -m "update ${COMMIT_DATE}"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Pushing commit to origin data..."
-    git -C "$WORKTREE_DIR" push origin data
+    run_with_retry git -C "$WORKTREE_DIR" push origin data
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Successfully updated and pushed data for $RUN_DATE."
 else
