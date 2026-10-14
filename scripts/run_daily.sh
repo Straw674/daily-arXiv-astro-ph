@@ -57,7 +57,7 @@ run_with_retry git -C "$WORKTREE_DIR" pull --rebase origin data
 
 # Execute Python pipeline
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] Executing src/main.py..."
-TARGET_DATE="$RUN_DATE" FORCE_REGEN="$FORCE_REGEN" uv run python src/main.py
+TARGET_DATE="$TARGET_DATE" FORCE_REGEN="$FORCE_REGEN" uv run python src/main.py
 
 # Detect changes in worktree
 CHANGES=$(git -C "$WORKTREE_DIR" status --porcelain)

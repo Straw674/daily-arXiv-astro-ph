@@ -1,7 +1,6 @@
 import logging
 import os
 import time
-import urllib.request
 import xml.etree.ElementTree as ET
 from collections import Counter
 from datetime import datetime
@@ -230,10 +229,10 @@ def fetch_papers_for_date(
             time.sleep(3.0)
         logger.info(f"Scraping pastweek page for {cat} on {formatted_date}")
         url = f"https://arxiv.org/list/{cat}/pastweek?show=2000"
-        req = urllib.request.Request(url, headers={"User-Agent": DEFAULT_USER_AGENT})
         try:
-            with urllib.request.urlopen(req) as response:
-                html = response.read().decode("utf-8")
+            with get_robust_session() as session:
+                response = session.get(url, timeout=30)
+                html = response.text
         except Exception as e:
             logger.error(f"Error fetching {url}: {e}")
             raise
